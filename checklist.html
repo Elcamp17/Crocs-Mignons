@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>L'aventure des Crocs Mignons</title>
+<style>
+  :root {
+    --bg1:#f5fbff;
+    --bg2:#f0fff4;
+    --brand1:#26a69a;
+    --brand2:#66bb6a;
+    --text:#151515;
+    --card:#ffffff;
+    --muted: rgba(0,0,0,.62);
+    --border: rgba(0,0,0,.10);
+    --shadow: 0 10px 22px rgba(0,0,0,.10);
+  }
+  body {
+    margin:0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color: var(--text);
+  }
+  header {
+    background: linear-gradient(90deg, var(--brand1), var(--brand2));
+    padding: 26px 16px 18px;
+    color: white;
+    box-shadow: 0 8px 20px rgba(0,0,0,.18);
+  }
+  header h1 {
+    margin:0;
+    font-size: 40px;
+    font-weight: 900;
+    letter-spacing: .5px;
+    text-align:center;
+  }
+  header .sub {
+    text-align:center;
+    margin-top:8px;
+    font-weight:700;
+    opacity:.92;
+  }
+  .wrap {
+    max-width: 1250px;
+    margin: 18px auto 44px;
+    padding: 0 16px;
+  }
+  .bar {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin: 14px 0 12px;
+  }
+  input[type="search"] {
+    flex: 1 1 340px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.92);
+    outline:none;
+    font-size: 14px;
+  }
+  .btn {
+    padding: 11px 14px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #1e8e84;
+    color: white;
+    font-weight: 900;
+    font-size: 14px;
+  }
+  .btn:hover { background:#16766e; }
+  .btn.ghost {
+    background: rgba(255,255,255,.78);
+    color: #0b3d39;
+    border: 1px solid var(--border);
+  }
+  .stats {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom: 14px;
+  }
+  .pill {
+    background: rgba(255,255,255,.78);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 900;
+  }
+  progress {
+    width: 260px;
+    height: 14px;
+    border-radius: 999px;
+    overflow:hidden;
+  }
+  .grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: var(--shadow);
+    border: 2px solid transparent;
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card.tamed { border-color: rgba(46,125,50,.55); }
+  .top {
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .icon {
+    width:56px;
+    height:56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(38,166,154,.18), rgba(102,187,106,.18));
+    border: 1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    flex: 0 0 auto;
+    position: relative;
+  }
+  .icon img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    display:block;
+  }
+  .icon .fallback {
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:1000;
+    color: rgba(0,0,0,.72);
+    font-size: 18px;
+    letter-spacing:.5px;
+    background: transparent;
+  }
+  .name {
+    font-weight: 950;
+    font-size: 14px;
+    line-height: 1.15;
+  }
+  .checks {
+    display:flex;
+    gap:10px;
+    margin-top: auto;
+  }
+  label.chk {
+    flex: 1 1 0;
+    font-size: 12px;
+    font-weight: 900;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding: 9px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(245,247,248,.92);
+    user-select:none;
+  }
+  .hint {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .hint code {
+    background: rgba(255,255,255,.86);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>L'aventure des Crocs Mignons 🦖</h1>
+  <div class="sub">Checklist taming (Mâle / Femelle) — synchro Firebase — icônes ARK Wiki</div>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <input id="search" type="search" placeholder="Rechercher un dino (ex: Rex, Argentavis, Arthropleura...)" />
+    <button class="btn ghost" id="reset">Reset</button>
+  </div>
+
+  <div class="stats">
+    <span class="pill" id="statsText">0 / 0</span>
+    <progress id="prog" value="0" max="1"></progress>
+    <span class="pill" id="syncStatus">Sync: …</span>
+    <span class="pill" id="iconStatus">Icônes: …</span>
+  </div>
+
+  <div class="hint">
+    Les icônes viennent de <code>ark.fandom.com</code> via l'API MediaWiki (cache local automatique).
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const LS_KEY = "crocs_mignons_custom_list_v2";
+const ICON_CACHE_KEY = "crocs_mignons_icon_cache_v1";
+const WIKI_API = "https://ark.fandom.com/fr/api.php";
+
+const DINO_TITLES = [
+  "Abeille g\u00e9ante",
+  "Achatina",
+  "Allosaure",
+  "Andrewsarchus",
+  "Ankylosaure",
+  "Aran\u00e9o",
+  "Archaeopteryx",
+  "Argentavis",
+  "Arthropleura",
+  "Astrocetus",
+  "Astrodelphis",
+  "Baryonyx",
+  "Basilic",
+  "Basilosaure",
+  "Baudroie abyssale",
+  "Beelzebufo",
+  "Bousier",
+  "Brontosaure",
+  "Bulbdog",
+  "Carbonemys",
+  "Carcharodontosaurus",
+  "Carnotaure",
+  "Castoroides",
+  "Chalicotherium",
+  "Coelacanthe",
+  "Compy",
+  "Daeodon",
+  "Deinonychus",
+  "Desmodus",
+  "Dilophosaure",
+  "Dim\u00e9trodon",
+  "Dimorphodon",
+  "Diplocaulus",
+  "Diplodocus",
+  "Dodo",
+  "Doedicurus",
+  "Dragon Rocheux",
+  "Drone de combat",
+  "Dunkleosteus",
+  "\u00c9claireur",
+  "Electrophorus",
+  "Equus",
+  "Ex\u00e9cuteur",
+  "Faucheur",
+  "Fenrir",
+  "Gacha",
+  "Gallimimus",
+  "Gasbag",
+  "Gecko luisant",
+  "Giganotosaure",
+  "Giganotosaure Tek",
+  "Gigantopith\u00e8que",
+  "Golem de pierre",
+  "Griffon",
+  "Hesperornis",
+  "Hy\u00e8ne",
+  "Ichthyornis",
+  "Ichthyosaure",
+  "Iguanodon",
+  "Jerboa",
+  "Kairuku",
+  "Kaprosuchus",
+  "Karkinos",
+  "Kentrosaure",
+  "L\u00e9zard \u00e9pineux",
+  "Loup Sinistre",
+  "Loutre",
+  "Lumicorne",
+  "Lystrosaure",
+  "Maewing",
+  "Maeguana",
+  "Mammouth",
+  "Managarm",
+  "Manta",
+  "Mantis",
+  "Megalania",
+  "M\u00e9galoc\u00e9ros",
+  "M\u00e9galodon",
+  "M\u00e9gath\u00e9rium",
+  "Mek",
+  "M\u00e9sopith\u00e8que",
+  "Microraptor",
+  "Mosasaure",
+  "Moschops",
+  "Oiseau-Terreur",
+  "Onyc",
+  "Ours Sinistre",
+  "Oviraptor",
+  "Ovis",
+  "Pachyc\u00e9phalosaure",
+  "Pachyrhinosaure",
+  "Paraceratherium",
+  "Parasaure",
+  "Pegomastax",
+  "Pelagornis",
+  "Ph\u00e9nix",
+  "Phiomia",
+  "Piranha",
+  "Pl\u00e9siosaure",
+  "Plumineux",
+  "Procoptodon",
+  "Pt\u00e9ranodon",
+  "Pulmonoscorpius",
+  "Purlovia",
+  "Quetzal",
+  "Raptor",
+  "Raptor tek",
+  "Rat des profondeurs",
+  "Ravageur",
+  "Rhinoc\u00e9ros laineux",
+  "Sarcosuchus",
+  "Saumon",
+  "Smilodon",
+  "Spinosaure",
+  "St\u00e9gosaure",
+  "St\u00e9gosaure TEK",
+  "T-Rex",
+  "T-Rex TEK",
+  "Tapejara",
+  "Th\u00e9rizinosaure",
+  "Thylacoleo",
+  "Titan de Glace",
+  "Titan des For\u00eats",
+  "Titan du D\u00e9sert",
+  "Titanoboa",
+  "Titanosaure",
+  "Tric\u00e9ratops",
+  "Tric\u00e9ratops TEK",
+  "Troodon",
+  "Tusoteuthis",
+  "Unit\u00e9 de d\u00e9fense",
+  "Vautour",
+  "V\u00e9lonasaure",
+  "Wyverne",
+  "Wyverne de Cristal",
+  "Wyverne de Feu",
+  "Wyverne de foudre",
+  "Wyverne de Glace",
+  "Wyverne de poison",
+  "Yutyrannus"
+];
+
+let state = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+let iconCache = JSON.parse(localStorage.getItem(ICON_CACHE_KEY) || "{}"); // { title: url }
+
+function saveState(){
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
+}
+
+function ensure(t) {
+  state[t] = state[t] || { m:false, f:false };
+}
+
+function isTamed(t) {
+  return !!(state[t] && (state[t].m || state[t].f));
+}
+
+function initials(name) {
+  const parts = name.replace(/\(.*?\)/g,"").trim().split(/\s+/);
+  const a = (parts[0]||"").charAt(0);
+  const b = (parts[1]||"").charAt(0);
+  const out = (a + b).toUpperCase();
+  return out || "🦖";
+}
+
+function iconUrlFor(title) {
+  return iconCache[title] || "";
+}
+
+function setIcon(el, title) {
+  const img = el.querySelector("img");
+  const fb = el.querySelector(".fallback");
+
+  const url = iconUrlFor(title);
+  if (url) {
+    img.src = url;
+    fb.textContent = "";
+    fb.style.display = "none";
+  } else {
+    img.removeAttribute("src");
+    fb.textContent = initials(title);
+    fb.style.display = "flex";
+  }
+
+  img.onerror = () => {
+    img.removeAttribute("src");
+    fb.textContent = initials(title);
+    fb.style.display = "flex";
+  };
+}
+
+function toggle(name, sex, val) {
+  ensure(name);
+  state[name][sex] = val;
+  saveState(); // intercepté par Firebase plus bas
+  render();
+}
+
+function makeCard(title) {
+  const d = document.createElement("div");
+  d.className = "card" + (isTamed(title) ? " tamed" : "");
+
+  const top = document.createElement("div");
+  top.className = "top";
+
+  const icon = document.createElement("div");
+  icon.className = "icon";
+  icon.innerHTML = '<img alt=""><div class="fallback"></div>';
+  setIcon(icon, title);
+
+  const nm = document.createElement("div");
+  nm.className = "name";
+  nm.textContent = title;
+
+  top.appendChild(icon);
+  top.appendChild(nm);
+
+  const checks = document.createElement("div");
+  checks.className = "checks";
+
+  [["m","Mâle"],["f","Femelle"]].forEach(([k,label]) => {
+    const l = document.createElement("label");
+    l.className = "chk";
+    const i = document.createElement("input");
+    i.type = "checkbox";
+    i.checked = !!(state[title] && state[title][k]);
+    i.addEventListener("change", e => toggle(title, k, e.target.checked));
+    l.appendChild(i);
+    l.appendChild(document.createTextNode(label));
+    checks.appendChild(l);
+  });
+
+  d.appendChild(top);
+  d.appendChild(checks);
+  return d;
+}
+
+function render() {
+  const q = (document.getElementById("search").value || "").toLowerCase().trim();
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  const filtered = q ? DINO_TITLES.filter(t => t.toLowerCase().includes(q)) : DINO_TITLES;
+
+  let totalTamed = 0;
+  for (const t of DINO_TITLES) if (isTamed(t)) totalTamed++;
+
+  document.getElementById("statsText").textContent =
+    `${totalTamed} / ${DINO_TITLES.length} dinos tamés • ${filtered.length} affichés`;
+
+  const prog = document.getElementById("prog");
+  prog.max = DINO_TITLES.length || 1;
+  prog.value = totalTamed;
+
+  for (const t of filtered) grid.appendChild(makeCard(t));
+}
+
+document.getElementById("search").addEventListener("input", render);
+document.getElementById("reset").addEventListener("click", () => {
+  if (!confirm("Reset toutes les coches pour tout le monde (sync) ?")) return;
+  state = {};
+  saveState();
+  render();
+});
+
+render();
+
+// ===== Chargement des icônes via API MediaWiki (batch + cache) =====
+const iconStatus = document.getElementById("iconStatus");
+
+function chunks(arr, size) {
+  const out = [];
+  for (let i=0; i<arr.length; i+=size) out.push(arr.slice(i, i+size));
+  return out;
+}
+
+function saveIconCache() {
+  localStorage.setItem(ICON_CACHE_KEY, JSON.stringify(iconCache));
+}
+
+async function fetchThumbs(titles) {
+  const params = new URLSearchParams({
+    action: "query",
+    prop: "pageimages",
+    piprop: "thumbnail",
+    pithumbsize: "120",
+    titles: titles.join("|"),
+    format: "json",
+    origin: "*"
+  });
+  const url = `${WIKI_API}?${params.toString()}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Wiki API HTTP " + res.status);
+  return await res.json();
+}
+
+async function loadIcons() {
+  // On évite de recharger tout si on a déjà du cache
+  const missing = DINO_TITLES.filter(t => !iconCache[t]);
+  if (missing.length === 0) {
+    iconStatus.textContent = "Icônes: ok ✅";
+    return;
+  }
+
+  iconStatus.textContent = `Icônes: chargement… ({missing.length})`;
+  let loaded = 0;
+
+  // batch 50 titres (limite API)
+  for (const batch of chunks(missing, 50)) {
+    try {
+      const data = await fetchThumbs(batch);
+      const pages = data?.query?.pages || {};
+      for (const id of Object.keys(pages)) {
+        const p = pages[id];
+        if (!p || !p.title) continue;
+        if (p.thumbnail && p.thumbnail.source) {
+          iconCache[p.title] = p.thumbnail.source;
+          loaded++;
+        }
+      }
+      saveIconCache();
+      iconStatus.textContent = `Icônes: chargement… ({loaded}/{missing.length})`;
+    } catch (e) {
+      console.error(e);
+      iconStatus.textContent = "Icônes: erreur ❌";
+      break;
+    }
+  }
+
+  // Re-render pour appliquer les images
+  render();
+  if (loaded > 0) {
+    iconStatus.textContent = `Icônes: ok ✅ ({loaded} nouvelles)`;
+  }
+}
+
+loadIcons();
+</script>
+
+<!-- Firebase sync -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBErcoaYkOucN6ljj-Yv6X32DaOO7DH0Uc",
+  authDomain: "les-crocs-mignons.firebaseapp.com",
+  databaseURL: "https://les-crocs-mignons-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "les-crocs-mignons",
+  storageBucket: "les-crocs-mignons.firebasestorage.app",
+  messagingSenderId: "219761916466",
+  appId: "1:219761916466:web:ced6cb5116a9ec60019a2b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const status = document.getElementById("syncStatus");
+let ready = false;
+
+function saveToFirebase(){
+  status.textContent = "Sync: envoi…";
+  return set(ref(db, "crocsMignons"), window.state)
+    .then(() => status.textContent = "Sync: ok ✅")
+    .catch((e) => {
+      console.error(e);
+      status.textContent = "Sync: erreur ❌";
+      alert("Erreur Firebase (écriture). Ouvre la console (F12) pour le détail.");
+    });
+}
+
+onValue(ref(db, "crocsMignons"), (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    window.state = data;
+    localStorage.setItem("crocs_mignons_custom_list_v2", JSON.stringify(window.state));
+    if (typeof window.render === "function") window.render();
+  }
+  ready = true;
+  status.textContent = "Sync: ok ✅";
+}, (err) => {
+  console.error(err);
+  status.textContent = "Sync: erreur ❌";
+});
+
+const originalSaveState = window.saveState;
+window.saveState = function(){
+  originalSaveState();
+  if (!ready) return;
+  saveToFirebase();
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>L'aventure des Crocs Mignons</title>
+<style>
+  :root {
+    --bg1:#f5fbff;
+    --bg2:#f0fff4;
+    --brand1:#26a69a;
+    --brand2:#66bb6a;
+    --text:#151515;
+    --card:#ffffff;
+    --muted: rgba(0,0,0,.6);
+    --border: rgba(0,0,0,.10);
+    --shadow: 0 10px 22px rgba(0,0,0,.10);
+    --ok: #2e7d32;
+  }
+  body {
+    margin:0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color: var(--text);
+  }
+  header {
+    background: linear-gradient(90deg, var(--brand1), var(--brand2));
+    padding: 26px 16px 18px;
+    color: white;
+    box-shadow: 0 8px 20px rgba(0,0,0,.18);
+  }
+  header h1 {
+    margin:0;
+    font-size: 40px;
+    font-weight: 900;
+    letter-spacing: .5px;
+    text-align:center;
+  }
+  header .sub {
+    text-align:center;
+    margin-top:8px;
+    font-weight:700;
+    opacity:.92;
+  }
+  .wrap {
+    max-width: 1250px;
+    margin: 18px auto 44px;
+    padding: 0 16px;
+  }
+  .bar {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin: 14px 0 12px;
+  }
+  input[type="search"] {
+    flex: 1 1 340px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.9);
+    outline:none;
+    font-size: 14px;
+  }
+  .btn {
+    padding: 11px 14px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #1e8e84;
+    color: white;
+    font-weight: 900;
+    font-size: 14px;
+  }
+  .btn:hover { background:#16766e; }
+  .btn.ghost {
+    background: rgba(255,255,255,.75);
+    color: #0b3d39;
+    border: 1px solid var(--border);
+  }
+  .stats {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom: 14px;
+  }
+  .pill {
+    background: rgba(255,255,255,.75);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 900;
+  }
+  progress {
+    width: 260px;
+    height: 14px;
+    border-radius: 999px;
+    overflow:hidden;
+  }
+  .grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: var(--shadow);
+    border: 2px solid transparent;
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card.tamed { border-color: rgba(46,125,50,.55); }
+  .top {
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .icon {
+    width:56px;
+    height:56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(38,166,154,.18), rgba(102,187,106,.18));
+    border: 1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    flex: 0 0 auto;
+    position: relative;
+  }
+  .icon img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    display:none;
+  }
+  .icon .txt {
+    font-weight: 1000;
+    color: rgba(0,0,0,.75);
+    font-size: 20px;
+    letter-spacing: .5px;
+  }
+  .name {
+    font-weight: 950;
+    font-size: 14px;
+    line-height: 1.15;
+  }
+  .checks {
+    display:flex;
+    gap:10px;
+    margin-top: auto;
+  }
+  label.chk {
+    flex: 1 1 0;
+    font-size: 12px;
+    font-weight: 900;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding: 9px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(245,247,248,.92);
+    user-select:none;
+  }
+  .hint {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .hint code {
+    background: rgba(255,255,255,.8);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>L'aventure des Crocs Mignons 🦖</h1>
+  <div class="sub">Checklist taming (Mâle / Femelle) — synchronisée (Firebase)</div>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <input id="search" type="search" placeholder="Rechercher un dino (ex: Rex, Argentavis, Arthropleura...)" />
+    <button class="btn ghost" id="reset">Reset</button>
+  </div>
+
+  <div class="stats">
+    <span class="pill" id="statsText">0 / 0</span>
+    <progress id="prog" value="0" max="1"></progress>
+    <span class="pill" id="syncStatus">Sync: …</span>
+  </div>
+
+  <div class="hint">
+    Icônes : tu peux ajouter tes images dans un dossier <code>icons/</code> à la racine du repo (ex: <code>icons/t-rex.png</code>). Sinon, on affiche des initiales.
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const LS_KEY = "crocs_mignons_custom_list_v2";
+const DINO_ITEMS = [
+    { name: 'Abeille géante', slug: 'abeille-g-ante' },
+    { name: 'Achatina', slug: 'achatina' },
+    { name: 'Allosaure', slug: 'allosaure' },
+    { name: 'Andrewsarchus', slug: 'andrewsarchus' },
+    { name: 'Ankylosaure', slug: 'ankylosaure' },
+    { name: 'Aranéo', slug: 'aran-o' },
+    { name: 'Archaeopteryx', slug: 'archaeopteryx' },
+    { name: 'Argentavis', slug: 'argentavis' },
+    { name: 'Arthropleura', slug: 'arthropleura' },
+    { name: 'Astrocetus', slug: 'astrocetus' },
+    { name: 'Astrodelphis', slug: 'astrodelphis' },
+    { name: 'Baryonyx', slug: 'baryonyx' },
+    { name: 'Basilic', slug: 'basilic' },
+    { name: 'Basilosaure', slug: 'basilosaure' },
+    { name: 'Baudroie abyssale', slug: 'baudroie-abyssale' },
+    { name: 'Beelzebufo', slug: 'beelzebufo' },
+    { name: 'Bousier', slug: 'bousier' },
+    { name: 'Brontosaure', slug: 'brontosaure' },
+    { name: 'Bulbdog', slug: 'bulbdog' },
+    { name: 'Carbonemys', slug: 'carbonemys' },
+    { name: 'Carcharodontosaurus', slug: 'carcharodontosaurus' },
+    { name: 'Carnotaure', slug: 'carnotaure' },
+    { name: 'Castoroides', slug: 'castoroides' },
+    { name: 'Chalicotherium', slug: 'chalicotherium' },
+    { name: 'Coelacanthe', slug: 'coelacanthe' },
+    { name: 'Compy', slug: 'compy' },
+    { name: 'Daeodon', slug: 'daeodon' },
+    { name: 'Deinonychus', slug: 'deinonychus' },
+    { name: 'Desmodus', slug: 'desmodus' },
+    { name: 'Dilophosaure', slug: 'dilophosaure' },
+    { name: 'Dimétrodon', slug: 'dim-trodon' },
+    { name: 'Dimorphodon', slug: 'dimorphodon' },
+    { name: 'Diplocaulus', slug: 'diplocaulus' },
+    { name: 'Diplodocus', slug: 'diplodocus' },
+    { name: 'Dodo', slug: 'dodo' },
+    { name: 'Doedicurus', slug: 'doedicurus' },
+    { name: 'Dragon Rocheux', slug: 'dragon-rocheux' },
+    { name: 'Drone de combat', slug: 'drone-de-combat' },
+    { name: 'Dunkleosteus', slug: 'dunkleosteus' },
+    { name: 'Éclaireur', slug: 'claireur' },
+    { name: 'Electrophorus', slug: 'electrophorus' },
+    { name: 'Equus', slug: 'equus' },
+    { name: 'Exécuteur', slug: 'ex-cuteur' },
+    { name: 'Faucheur', slug: 'faucheur' },
+    { name: 'Fenrir', slug: 'fenrir' },
+    { name: 'Gacha', slug: 'gacha' },
+    { name: 'Gallimimus', slug: 'gallimimus' },
+    { name: 'Gasbag', slug: 'gasbag' },
+    { name: 'Gecko luisant', slug: 'gecko-luisant' },
+    { name: 'Giganotosaure', slug: 'giganotosaure' },
+    { name: 'Giganotosaure Tek', slug: 'giganotosaure-tek' },
+    { name: 'Gigantopithèque', slug: 'gigantopith-que' },
+    { name: 'Golem de pierre', slug: 'golem-de-pierre' },
+    { name: 'Griffon', slug: 'griffon' },
+    { name: 'Hesperornis', slug: 'hesperornis' },
+    { name: 'Hyène', slug: 'hy-ne' },
+    { name: 'Ichthyornis', slug: 'ichthyornis' },
+    { name: 'Ichthyosaure', slug: 'ichthyosaure' },
+    { name: 'Iguanodon', slug: 'iguanodon' },
+    { name: 'Jerboa', slug: 'jerboa' },
+    { name: 'Kairuku', slug: 'kairuku' },
+    { name: 'Kaprosuchus', slug: 'kaprosuchus' },
+    { name: 'Karkinos', slug: 'karkinos' },
+    { name: 'Kentrosaure', slug: 'kentrosaure' },
+    { name: 'Lézard épineux', slug: 'l-zard-pineux' },
+    { name: 'Loup Sinistre', slug: 'loup-sinistre' },
+    { name: 'Loutre', slug: 'loutre' },
+    { name: 'Lumicorne', slug: 'lumicorne' },
+    { name: 'Lystrosaure', slug: 'lystrosaure' },
+    { name: 'Maewing', slug: 'maewing' },
+    { name: 'Maeguana', slug: 'maeguana' },
+    { name: 'Mammouth', slug: 'mammouth' },
+    { name: 'Managarm', slug: 'managarm' },
+    { name: 'Manta', slug: 'manta' },
+    { name: 'Mantis', slug: 'mantis' },
+    { name: 'Megalania', slug: 'megalania' },
+    { name: 'Mégalocéros', slug: 'm-galoc-ros' },
+    { name: 'Mégalodon', slug: 'm-galodon' },
+    { name: 'Mégathérium', slug: 'm-gath-rium' },
+    { name: 'Mek', slug: 'mek' },
+    { name: 'Mésopithèque', slug: 'm-sopith-que' },
+    { name: 'Microraptor', slug: 'microraptor' },
+    { name: 'Mosasaure', slug: 'mosasaure' },
+    { name: 'Moschops', slug: 'moschops' },
+    { name: 'Oiseau-Terreur', slug: 'oiseau-terreur' },
+    { name: 'Onyc', slug: 'onyc' },
+    { name: 'Ours Sinistre', slug: 'ours-sinistre' },
+    { name: 'Oviraptor', slug: 'oviraptor' },
+    { name: 'Ovis', slug: 'ovis' },
+    { name: 'Pachycéphalosaure', slug: 'pachyc-phalosaure' },
+    { name: 'Pachyrhinosaure', slug: 'pachyrhinosaure' },
+    { name: 'Paraceratherium', slug: 'paraceratherium' },
+    { name: 'Parasaure', slug: 'parasaure' },
+    { name: 'Pegomastax', slug: 'pegomastax' },
+    { name: 'Pelagornis', slug: 'pelagornis' },
+    { name: 'Phénix', slug: 'ph-nix' },
+    { name: 'Phiomia', slug: 'phiomia' },
+    { name: 'Piranha', slug: 'piranha' },
+    { name: 'Plésiosaure', slug: 'pl-siosaure' },
+    { name: 'Plumineux', slug: 'plumineux' },
+    { name: 'Procoptodon', slug: 'procoptodon' },
+    { name: 'Ptéranodon', slug: 'pt-ranodon' },
+    { name: 'Pulmonoscorpius', slug: 'pulmonoscorpius' },
+    { name: 'Purlovia', slug: 'purlovia' },
+    { name: 'Quetzal', slug: 'quetzal' },
+    { name: 'Raptor', slug: 'raptor' },
+    { name: 'Raptor tek', slug: 'raptor-tek' },
+    { name: 'Rat des profondeurs', slug: 'rat-des-profondeurs' },
+    { name: 'Ravageur', slug: 'ravageur' },
+    { name: 'Rhinocéros laineux', slug: 'rhinoc-ros-laineux' },
+    { name: 'Sarcosuchus', slug: 'sarcosuchus' },
+    { name: 'Saumon', slug: 'saumon' },
+    { name: 'Smilodon', slug: 'smilodon' },
+    { name: 'Spinosaure', slug: 'spinosaure' },
+    { name: 'Stégosaure', slug: 'st-gosaure' },
+    { name: 'Stégosaure TEK', slug: 'st-gosaure-tek' },
+    { name: 'T-Rex', slug: 't-rex' },
+    { name: 'T-Rex TEK', slug: 't-rex-tek' },
+    { name: 'Tapejara', slug: 'tapejara' },
+    { name: 'Thérizinosaure', slug: 'th-rizinosaure' },
+    { name: 'Thylacoleo', slug: 'thylacoleo' },
+    { name: 'Titan de Glace', slug: 'titan-de-glace' },
+    { name: 'Titan des Forêts', slug: 'titan-des-for-ts' },
+    { name: 'Titan du Désert', slug: 'titan-du-d-sert' },
+    { name: 'Titanoboa', slug: 'titanoboa' },
+    { name: 'Titanosaure', slug: 'titanosaure' },
+    { name: 'Tricératops', slug: 'tric-ratops' },
+    { name: 'Tricératops TEK', slug: 'tric-ratops-tek' },
+    { name: 'Troodon', slug: 'troodon' },
+    { name: 'Tusoteuthis', slug: 'tusoteuthis' },
+    { name: 'Unité de défense', slug: 'unit-de-d-fense' },
+    { name: 'Vautour', slug: 'vautour' },
+    { name: 'Vélonasaure', slug: 'v-lonasaure' },
+    { name: 'Wyverne', slug: 'wyverne' },
+    { name: 'Wyverne de Cristal', slug: 'wyverne-de-cristal' },
+    { name: 'Wyverne de Feu', slug: 'wyverne-de-feu' },
+    { name: 'Wyverne de foudre', slug: 'wyverne-de-foudre' },
+    { name: 'Wyverne de Glace', slug: 'wyverne-de-glace' },
+    { name: 'Wyverne de poison', slug: 'wyverne-de-poison' },
+    { name: 'Yutyrannus', slug: 'yutyrannus' }
+];
+
+let state = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+
+function saveState(){
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
+}
+
+function ensure(t){
+  state[t] = state[t] || { m:false, f:false };
+}
+
+function isTamed(t){
+  return !!(state[t] && (state[t].m || state[t].f));
+}
+
+function initials(name){
+  // 1 ou 2 lettres max
+  const parts = name.replace(/\(.*?\)/g,"").trim().split(/\s+/);
+  const a = (parts[0]||"").charAt(0);
+  const b = (parts[1]||"").charAt(0);
+  const out = (a + b).toUpperCase();
+  return out || "🦖";
+}
+
+function setIcon(el, slug, name){
+  const img = el.querySelector("img");
+  const txt = el.querySelector(".txt");
+  const src = `./icons/${slug}.png`;
+  img.onload = () => {
+    img.style.display = "block";
+    txt.style.display = "none";
+  };
+  img.onerror = () => {
+    img.style.display = "none";
+    txt.style.display = "block";
+    txt.textContent = initials(name);
+  };
+  img.src = src;
+}
+
+function toggle(name, sex, val){
+  ensure(name);
+  state[name][sex] = val;
+  saveState(); // sera intercepté par Firebase plus bas
+  render();
+}
+
+function makeCard(item){
+  const d = document.createElement("div");
+  d.className = "card" + (isTamed(item.name) ? " tamed" : "");
+
+  const top = document.createElement("div");
+  top.className = "top";
+
+  const icon = document.createElement("div");
+  icon.className = "icon";
+  icon.innerHTML = `<img alt=""><div class="txt"></div>`;
+  setIcon(icon, item.slug, item.name);
+
+  const nm = document.createElement("div");
+  nm.className = "name";
+  nm.textContent = item.name;
+
+  top.appendChild(icon);
+  top.appendChild(nm);
+
+  const checks = document.createElement("div");
+  checks.className = "checks";
+
+  [["m","Mâle"],["f","Femelle"]].forEach(([k,label])=>{
+    const l = document.createElement("label");
+    l.className = "chk";
+    const i = document.createElement("input");
+    i.type = "checkbox";
+    i.checked = !!(state[item.name] && state[item.name][k]);
+    i.addEventListener("change", e => toggle(item.name, k, e.target.checked));
+    l.appendChild(i);
+    l.appendChild(document.createTextNode(label));
+    checks.appendChild(l);
+  });
+
+  d.appendChild(top);
+  d.appendChild(checks);
+  return d;
+}
+
+function render(){
+  const q = (document.getElementById("search").value || "").toLowerCase().trim();
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  let tamedCount = 0;
+  let shown = 0;
+
+  for(const item of DINO_ITEMS){
+    if(q && !item.name.toLowerCase().includes(q)) continue;
+    grid.appendChild(makeCard(item));
+    shown++;
+    if(isTamed(item.name)) tamedCount++;
+  }
+
+  const total = DINO_ITEMS.length;
+  const totalTamed = DINO_ITEMS.reduce((acc,it)=>acc + (isTamed(it.name)?1:0), 0);
+
+  document.getElementById("statsText").textContent = `${totalTamed} / ${total} dinos tamés • ${shown} affichés`;
+  const prog = document.getElementById("prog");
+  prog.max = total || 1;
+  prog.value = totalTamed;
+}
+
+document.getElementById("search").addEventListener("input", render);
+document.getElementById("reset").addEventListener("click", () => {
+  if(!confirm("Reset toutes les coches pour tout le monde (sync) ?")) return;
+  state = {};
+  saveState(); // intercept + push firebase
+  render();
+});
+
+render();
+</script>
+
+<!-- Firebase sync -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBErcoaYkOucN6ljj-Yv6X32DaOO7DH0Uc",
+  authDomain: "les-crocs-mignons.firebaseapp.com",
+  databaseURL: "https://les-crocs-mignons-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "les-crocs-mignons",
+  storageBucket: "les-crocs-mignons.firebasestorage.app",
+  messagingSenderId: "219761916466",
+  appId: "1:219761916466:web:ced6cb5116a9ec60019a2b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const status = document.getElementById("syncStatus");
+let ready = false;
+
+function saveToFirebase(){
+  status.textContent = "Sync: envoi…";
+  return set(ref(db, "crocsMignons"), window.state)
+    .then(() => status.textContent = "Sync: ok ✅")
+    .catch((e) => {
+      console.error(e);
+      status.textContent = "Sync: erreur ❌";
+      alert("Erreur Firebase (écriture). Ouvre la console (F12) pour le détail.");
+    });
+}
+
+onValue(ref(db, "crocsMignons"), (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    window.state = data;
+    localStorage.setItem("crocs_mignons_custom_list_v2", JSON.stringify(window.state));
+    if (typeof window.render === "function") window.render();
+  }
+  ready = true;
+  status.textContent = "Sync: ok ✅";
+}, (err) => {
+  console.error(err);
+  status.textContent = "Sync: erreur ❌";
+});
+
+// Interception de saveState()
+const originalSaveState = window.saveState;
+window.saveState = function(){
+  originalSaveState();
+  // évite de spammer au tout premier chargement si firebase pas prêt
+  if (!ready) return;
+  saveToFirebase();
+};
+</script>
+
+</body>
+</html>

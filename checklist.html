@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>L'aventure des Crocs Mignons</title>
+
+<style>
+  body {
+    margin:0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg, #e0f7fa, #e8f5e9);
+    color:#1b1b1b;
+  }
+  header {
+    background: linear-gradient(90deg, #26a69a, #66bb6a);
+    padding:28px 16px;
+    text-align:center;
+    color:white;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+  }
+  h1 {
+    margin:0;
+    font-size:44px;
+    font-weight:900;
+    letter-spacing:1px;
+  }
+  .container {
+    max-width:1200px;
+    margin:22px auto 40px;
+    padding:0 16px;
+  }
+  .controls {
+    display:flex;
+    gap:10px;
+    margin: 14px 0 14px;
+    flex-wrap:wrap;
+  }
+  input[type="search"] {
+    flex: 1 1 320px;
+    padding:11px 12px;
+    border-radius:10px;
+    border:1px solid rgba(0,0,0,0.18);
+    background: rgba(255,255,255,0.9);
+    outline:none;
+  }
+  button {
+    padding:11px 14px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    background:#1e8e84;
+    color:white;
+    font-weight:800;
+  }
+  button:hover { background:#16766e; }
+  .stats {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom: 14px;
+    font-weight:800;
+  }
+  .pill {
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 999px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  progress {
+    width: 260px;
+    height: 14px;
+    border-radius: 999px;
+    overflow:hidden;
+  }
+  .grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap:14px;
+  }
+  .card {
+    background:white;
+    border-radius:14px;
+    padding:12px;
+    box-shadow:0 6px 14px rgba(0,0,0,0.10);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    border: 2px solid transparent;
+  }
+  .card.tamed { border-color: #4caf50; }
+  .top { display:flex; align-items:center; gap:10px; }
+  .icon {
+    width:52px;
+    height:52px;
+    border-radius:12px;
+    background:#f2f4f6;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    font-size:22px;
+    border: 1px solid rgba(0,0,0,0.10);
+    flex: 0 0 auto;
+  }
+  .icon img {
+    width:52px;
+    height:52px;
+    object-fit:cover;
+    display:block;
+  }
+  .name { font-weight:900; font-size:14px; line-height:1.2; }
+  .checks { display:flex; gap:10px; margin-top:auto; }
+  label.chk {
+    flex: 1 1 0;
+    font-size:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:9px 10px;
+    border-radius:12px;
+    border:1px solid rgba(0,0,0,0.10);
+    background: rgba(245,247,248,0.9);
+    user-select:none;
+  }
+  label.chk input { transform: scale(1.15); }
+
+  .boss-card {
+    border: 2px solid rgba(30,142,132,.18);
+    gap: 12px;
+  }
+  .boss-map {
+    font-weight: 900;
+    font-size: 16px;
+    color:#0f5f58;
+  }
+  .boss-sub {
+    font-size: 12px;
+    color:#4a5560;
+    font-weight: 700;
+  }
+  .boss-list {
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .boss-entry {
+    border:1px solid rgba(0,0,0,.10);
+    border-radius:12px;
+    padding:10px;
+    background: rgba(248,250,251,.95);
+  }
+  .boss-entry-top {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    justify-content:space-between;
+    flex-wrap:wrap;
+  }
+  .boss-entry-name {
+    font-weight: 900;
+    font-size: 14px;
+    line-height: 1.2;
+  }
+  .boss-entry-note {
+    font-size: 12px;
+    color:#54606a;
+    line-height:1.25;
+    margin-top: 6px;
+  }
+  .diffs {
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-top:8px;
+  }
+  .diff {
+    border-radius:999px;
+    padding:4px 8px;
+    font-size:11px;
+    font-weight:900;
+    color:white;
+    border:1px solid rgba(0,0,0,.12);
+  }
+  .diff.gamma { background:#43a047; }
+  .diff.beta  { background:#fb8c00; }
+  .diff.alpha { background:#e53935; }
+  .diff.na { background:#b0bec5; color:#223; }
+
+
+  .controls button.active {
+    background:#0f6b63;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.28);
+  }
+  #backMenuBtn { background:#6d4c41; }
+  #backMenuBtn:hover { background:#5b3f36; }
+
+  .dashboard {
+    display:grid;
+    grid-template-columns: 1.15fr .85fr;
+    gap:14px;
+    margin-bottom:14px;
+  }
+  .dash-card {
+    background:white;
+    border-radius:14px;
+    padding:14px;
+    box-shadow:0 6px 14px rgba(0,0,0,0.10);
+    border:1px solid rgba(0,0,0,.06);
+  }
+  .dash-card.wide {
+    grid-column: 1 / -1;
+  }
+  .dash-title {
+    margin:0 0 10px 0;
+    font-size:16px;
+    font-weight:900;
+    color:#0f5f58;
+  }
+  .dash-sub {
+    margin:0 0 10px 0;
+    font-size:12px;
+    color:#5a6a73;
+    font-weight:700;
+  }
+  .dash-metrics {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap:10px;
+  }
+  .metric {
+    border-radius:12px;
+    border:1px solid rgba(0,0,0,.08);
+    background: rgba(248,250,251,.95);
+    padding:10px;
+  }
+  .metric .label {
+    font-size:11px;
+    color:#5b6770;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+  }
+  .metric .big {
+    font-size:21px;
+    font-weight:900;
+    line-height:1.15;
+    margin-top:4px;
+  }
+  .metric .small {
+    font-size:12px;
+    color:#54606a;
+    margin-top:3px;
+    font-weight:700;
+  }
+  .dash-progress-row {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .dash-progress-row progress {
+    flex:1 1 240px;
+    width:auto;
+  }
+  .chart-wrap {
+    border:1px solid rgba(0,0,0,.08);
+    border-radius:12px;
+    background: linear-gradient(180deg, rgba(38,166,154,.04), rgba(102,187,106,.03));
+    padding:10px;
+  }
+  .chart-head {
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .chart-head .value {
+    font-size:20px;
+    font-weight:900;
+  }
+  .chart-head .caption {
+    font-size:12px;
+    color:#56626b;
+    font-weight:700;
+  }
+  .chart-svg {
+    width:100%;
+    height:220px;
+    display:block;
+  }
+  .chart-axes {
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:4px;
+    color:#60707a;
+    font-size:11px;
+    font-weight:700;
+  }
+  .empty-note {
+    font-size:12px;
+    color:#60707a;
+    font-weight:700;
+  }
+  @media (max-width: 820px) {
+    .dashboard { grid-template-columns: 1fr; }
+    .dash-card.wide { grid-column: auto; }
+    .chart-svg { height:190px; }
+  }
+
+</style>
+</head>
+
+<body>
+<header>
+  <h1>L'aventure des Crocs Mignons 🦖</h1>
+</header>
+
+<div class="container">
+  <div class="controls">
+    <button id="dinoBtn" type="button" title="Voir les dinos">Dinos</button>
+    <button id="bossBtn" type="button" title="Voir les boss par map">Boss</button>
+    <button id="backMenuBtn" type="button" title="Retour au tableau de bord" style="display:none;">Retour au menu</button>
+    <input id="search" type="search" placeholder="Rechercher un dino..." style="display:none;" />
+  </div>
+
+  <div class="dashboard" id="dashboard"></div>
+
+  <div class="stats" id="statsBar" style="display:none;">
+    <span class="pill" id="modeText">Mode: Tableau de bord 📊</span>
+    <span class="pill" id="statsText"></span>
+    <progress id="prog" value="0" max="1"></progress>
+    <span class="pill" id="shownText"></span>
+    <span class="pill" id="syncText">Sync: …</span>
+  </div>
+
+  <div class="grid" id="grid" style="display:none;"></div>
+</div>
+
+<script>
+// ========= Liste dinos (FR) =========
+const LS_KEY = "crocs_mignons_state_v3";
+const DINO_TITLES = ['Achatina', 'Allosaure', 'Baudroie abyssale', 'Ankylosaure', 'Aranéo', 'Archéoptéryx', 'Archélon', 'Argentavis', 'Armadoggo', 'Arthropleura', 'Aureliax', 'Baryonyx', 'Basilic', 'Basilosaure', 'Beelzebufo', 'Brontosaure', 'Bulbdog', 'Carbonemys', 'Carcharodontosaure', 'Carnotaure', 'Castoroides', 'Chat', 'Cératosaure', 'Chalicothère', 'Cœlacanthe', 'Compy', 'Cosmo', 'Cryolophosaure', 'Daeodon', 'Deinonychus', 'Deinosuchus', 'Deinotherium', 'Titan du Désert', 'Dilophosaure', 'Dimétrodon', 'Dimorphodon', 'Diplocaulus', 'Diplodocus', 'Ours Sinistre', 'Loup Sinistre', 'Dodo', 'Doedicurus', 'Drakeling Été', 'Drakeling Hiver', 'Drakeling Printemps', 'Drakeling Automne', 'Dreadnoughtus', 'Dreadmare', 'Bousier', 'Dunkleosteus', 'Elderclaw', 'Electrophorus', 'Equus', 'Fasolasuchus', 'Lumicorne (Featherlight)', 'Titan des Forêts', 'Gacha', 'Gallimimus', 'Gasbag', 'Abeille Géante', 'Bison', 'Gigadesmodus', 'Giganotosaure', 'Giganotosaure TEK', 'Gigantopithèque', 'Gigantoraptor', 'Gloon', 'Griffon', 'Helicoprion', 'Hesperornis', 'Hyénodon', 'Titan de Glace', 'Ichthyornis', 'Ichthyosaure', 'Iguanodon', 'Jerboa', 'Kairuku', 'Kaprosuchus', 'Karkinos', 'Kentrosaure', 'Lymantria', 'Lystrosaure', 'Maeguana', 'Malwyn', 'Mammouth', 'Managarmr', 'Manta', 'Mantis', 'Megalania', 'Mégalocéros', 'Mégalodon', 'Mégalosaure', 'Megaraptor', 'Mégathérium', 'Mésopithèque', 'Microraptor', 'Morellatops', 'Mosasaure', 'Moschops', 'Oasisaure', 'Onyc', 'Ossidon', 'Loutre', 'Oviraptor', 'Ovis', 'Pachycéphalosaure (Pachy)', 'Pachyrhinosaure', 'Paraceratherium', 'Parasaure', 'Parasaure TEK', 'Pegomastax', 'Pelagornis', 'Phiomia', 'Phénix', 'Piranha', 'Plésiosaure', 'Procoptodon', 'Ptéranodon', 'Pulmonoscorpius', 'Purlovia', 'Pyromane', 'Quetzal', 'Raptor', 'Raptor TEK', 'Ravageur', 'Faucheur (Reaper)', 'Rex', 'Rex TEK', 'Rhyniognatha', 'Drake des Roches', 'Golem de Pierre', 'Rat des Profondeurs', 'Smilodon (Sabertooth)', 'Saumon Sabertooth', 'Sarcosuchus', 'Shastasaurus', 'Shinehorn', 'Chouette des Neiges', 'Solwyn', 'Spinosaure', 'Stégosaure', 'Stégosaure TEK', 'Tapejara', 'Oiseau-Terreur', 'Thérizinosaure', 'Lézard Épineux', 'Thrall', 'Thylacoleo', 'Titanoboa', 'Titanomyrma', 'Titanosaure', 'Tricératops', 'Troodon', 'Tusoteuthis', 'Licorne', 'Veilwyn', 'Vélonasaure', 'Vautour', 'Rhinocéros Laineux', 'Wyverne de Feu', 'Wyverne de Poison', 'Wyverne de Glace', 'Wyverne de Foudre', 'Wyverne Runique', 'Wyverne Saphir', 'Wyverne Venin', 'Xiphactinus', 'Yi Ling', 'Yutyrannus'];
+
+// Affichage en ordre alphabétique (sans casser les clés de sauvegarde)
+const DINO_TITLES_SORTED = [...DINO_TITLES].sort((a,b)=>a.localeCompare(b,'fr',{sensitivity:'base'}));
+
+let state = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+
+let currentView = "dashboard"; // "dashboard" | "dinos" | "bosses"
+
+const BOSS_MAPS = [
+  {
+    map: "Astraeos",
+    aliases: ["Astraeos_WP"],
+    note: "Carte mod (Astraeos) — liste issue du wiki communautaire Astraeos.",
+    bosses: [
+      { name: "Erymanthian & Kalydonios", difficulties: "gba" },
+      { name: "Kirayli", difficulties: "gba" },
+      { name: "Natrix", difficulties: "gba" },
+      { name: "Thanatos", difficulties: "gba" },
+      { name: "Thodes", difficulties: "gba" }
+    ]
+  },
+  {
+    map: "Scorched Earth",
+    aliases: ["ScorchedEarth_WP"],
+    bosses: [ { name: "Manticore", difficulties: "gba" } ]
+  },
+  {
+    map: "Ragnarok",
+    aliases: ["Ragnarok_WP", "NEMESIS"],
+    note: "ASA : le wiki Boss Arenas indique la variante Nunatak pour Ragnarok.",
+    bosses: [ { name: "Nunatak (ASA)", difficulties: "gba" } ]
+  },
+  {
+    map: "Svartalfheim",
+    aliases: ["Svartalfheim_WP"],
+    note: "Map mod : patch notes du wiki Svartalfheim mentionnent un Dinopithecus Bossfight.",
+    bosses: [ { name: "Dinopithecus Bossfight", difficulties: "gba" } ]
+  },
+  {
+    map: "Aberration",
+    aliases: ["Aberration_WP"],
+    bosses: [ { name: "Rockwell", difficulties: "gba" } ]
+  },
+  {
+    map: "Extinction",
+    aliases: ["Extinction_WP"],
+    note: "Titans = world bosses. King Titan a 3 paliers; Desert/Forest/Ice n'utilisent pas le trio Gamma/Beta/Alpha classique.",
+    bosses: [
+      { name: "Desert Titan", difficulties: "na" },
+      { name: "Forest Titan", difficulties: "na" },
+      { name: "Ice Titan", difficulties: "na" },
+      { name: "King Titan", difficulties: "gba" }
+    ]
+  },
+  {
+    map: "The Center",
+    aliases: ["TheCenter_WP"],
+    note: "Combat double dans la même arène.",
+    bosses: [ { name: "Broodmother Lysrix + Megapithecus (combat double)", difficulties: "gba" } ]
+  },
+  {
+    map: "Lost Colony",
+    aliases: ["Lost Colony", "LostColony_WP"],
+    note: "Mission/arena Red-Handed : Lost King + Lost Queen.",
+    bosses: [
+      { name: "Lost King", difficulties: "gba" },
+      { name: "Lost Queen", difficulties: "gba" }
+    ]
+  },
+  {
+    map: "Valguero",
+    aliases: ["Valguero_WP"],
+    note: "Le wiki Boss Arenas mentionne une variante ASA avec Grendel.",
+    bosses: [ { name: "Grendel (ASA)", difficulties: "gba" } ]
+  },
+  {
+    map: "The Island",
+    aliases: ["TheIsland_WP"],
+    note: "Progression : Broodmother, Megapithecus, Dragon puis Overseer.",
+    bosses: [
+      { name: "Broodmother Lysrix", difficulties: "gba" },
+      { name: "Megapithecus", difficulties: "gba" },
+      { name: "Dragon", difficulties: "gba" },
+      { name: "Overseer", difficulties: "gba" }
+    ]
+  }
+];
+
+function bossStateRoot(create=false) {
+  if (!state || typeof state !== "object" || Array.isArray(state)) state = {};
+  if (!state.__boss || typeof state.__boss !== "object" || Array.isArray(state.__boss)) {
+    if (!create) return null;
+    state.__boss = {};
+  }
+  return state.__boss;
+}
+
+function bossKey(mapName, bossName) {
+  return String(mapName || "") + "||" + String(bossName || "");
+}
+
+function getBossChecks(mapName, bossName) {
+  const root = bossStateRoot(false);
+  const k = bossKey(mapName, bossName);
+  const x = (root && root[k]) || {};
+  return {
+    g: !!x.g,
+    b: !!x.b,
+    a: !!x.a,
+    done: !!x.done
+  };
+}
+
+function setBossCheck(mapName, bossName, field, value) {
+  const root = bossStateRoot(true);
+  const k = bossKey(mapName, bossName);
+  root[k] = root[k] || { g:false, b:false, a:false, done:false };
+  root[k][field] = !!value;
+  maybeRecordProgressSnapshot();
+  saveState();
+  render();
+  if (window.__saveToFirebase) window.__saveToFirebase();
+}
+
+function difficultyChips(mode, mapName, bossName) {
+  const wrap = document.createElement("div");
+  wrap.className = "diffs";
+  const checks = getBossChecks(mapName, bossName);
+
+  const addCheck = (label, cls, field, checked, disabled=false) => {
+    const lab = document.createElement("label");
+    lab.className = "diff " + cls + (checked ? " done" : "") + (disabled ? " is-disabled" : "");
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = !!checked;
+    input.disabled = !!disabled;
+    input.addEventListener("change", (e) => {
+      setBossCheck(mapName, bossName, field, e.target.checked);
+    });
+    lab.appendChild(input);
+    const span = document.createElement("span");
+    span.textContent = label;
+    lab.appendChild(span);
+    wrap.appendChild(lab);
+  };
+
+  if (mode === "na") {
+    addCheck("Fait", "na", "done", checks.done, false);
+    return wrap;
+  }
+
+  addCheck("Gamma", "gamma", "g", checks.g, false);
+  addCheck("Beta", "beta", "b", checks.b, false);
+  addCheck("Alpha", "alpha", "a", checks.a, false);
+  return wrap;
+}
+
+function renderBosses() {
+  const grid = document.getElementById("grid");
+  const search = (document.getElementById("search").value || "").toLowerCase().trim();
+  grid.innerHTML = "";
+  let shownMaps = 0, shownBosses = 0, doneUnits = 0, totalUnits = 0;
+
+  BOSS_MAPS.forEach(entry => {
+    const haystack = [
+      entry.map,
+      ...(entry.aliases || []),
+      entry.note || "",
+      ...(entry.bosses || []).map(b => (b.name + " " + (b.note || "")))
+    ].join(" ").toLowerCase();
+    if (search && !haystack.includes(search)) return;
+
+    const d = document.createElement("div");
+    d.className = "card boss-card";
+
+    const top = document.createElement("div"); top.className = "top";
+    const icon = document.createElement("div"); icon.className = "icon"; icon.textContent = "👑";
+    const meta = document.createElement("div");
+    const mapName = document.createElement("div"); mapName.className = "boss-map"; mapName.textContent = entry.map;
+    const sub = document.createElement("div"); sub.className = "boss-sub"; sub.textContent = (entry.aliases && entry.aliases[0]) ? ("Map code: " + entry.aliases[0]) : "Boss";
+    meta.appendChild(mapName); meta.appendChild(sub);
+    top.appendChild(icon); top.appendChild(meta);
+
+    const list = document.createElement("div"); list.className = "boss-list";
+    (entry.bosses || []).forEach(b => {
+      shownBosses++;
+      const bc = getBossChecks(entry.map, b.name);
+      if ((b.difficulties || "gba") === "na") {
+        totalUnits += 1;
+        if (bc.done) doneUnits += 1;
+      } else {
+        totalUnits += 3;
+        if (bc.g) doneUnits += 1;
+        if (bc.b) doneUnits += 1;
+        if (bc.a) doneUnits += 1;
+      }
+      const row = document.createElement("div"); row.className = "boss-entry";
+      const rowTop = document.createElement("div"); rowTop.className = "boss-entry-top";
+      const title = document.createElement("div"); title.className = "boss-entry-name"; title.textContent = b.name;
+      rowTop.appendChild(title);
+      row.appendChild(rowTop);
+      row.appendChild(difficultyChips(b.difficulties || "gba", entry.map, b.name));
+      if (b.note) {
+        const n = document.createElement("div"); n.className = "boss-entry-note"; n.textContent = b.note; row.appendChild(n);
+      }
+      list.appendChild(row);
+    });
+    if (entry.note) {
+      const note = document.createElement("div"); note.className = "boss-entry-note"; note.textContent = entry.note; list.appendChild(note);
+    }
+
+    d.appendChild(top); d.appendChild(list); grid.appendChild(d);
+    shownMaps++;
+  });
+
+  document.getElementById("statsText").innerText = shownBosses + " boss listés" + (totalUnits ? (" · " + doneUnits + "/" + totalUnits + " difficultés cochées") : "");
+  document.getElementById("shownText").innerText = "Maps affichées: " + shownMaps + " / " + BOSS_MAPS.length;
+  const prog = document.getElementById("prog");
+  prog.max = Math.max(1, shownBosses);
+  prog.value = shownBosses;
+}
+
+function updateViewButtons() {
+  const search = document.getElementById("search");
+  const dinoBtn = document.getElementById("dinoBtn");
+  const bossBtn = document.getElementById("bossBtn");
+  const backBtn = document.getElementById("backMenuBtn");
+  const prog = document.getElementById("prog");
+  const modeTextEl = document.getElementById("modeText");
+  const grid = document.getElementById("grid");
+  const dash = document.getElementById("dashboard");
+  const statsBar = document.getElementById("statsBar");
+
+  if (dinoBtn) dinoBtn.classList.toggle("active", currentView === "dinos");
+  if (bossBtn) bossBtn.classList.toggle("active", currentView === "bosses");
+
+  if (currentView === "dashboard") {
+    if (search) { search.style.display = "none"; search.value = ""; }
+    if (dinoBtn) dinoBtn.style.display = "";
+    if (bossBtn) bossBtn.style.display = "";
+    if (backBtn) backBtn.style.display = "none";
+    if (grid) grid.style.display = "none";
+    if (dash) dash.style.display = "grid";
+    if (statsBar) statsBar.style.display = "none";
+    if (modeTextEl) modeTextEl.textContent = "Mode: Tableau de bord 📊";
+    return;
+  }
+
+  if (search) {
+    search.style.display = "";
+    search.placeholder = currentView === "bosses"
+      ? "Rechercher une map ou un boss..."
+      : "Rechercher un dino...";
+  }
+
+  if (dinoBtn) dinoBtn.style.display = "none";
+  if (bossBtn) bossBtn.style.display = "none";
+  if (backBtn) backBtn.style.display = "";
+  if (grid) grid.style.display = "grid";
+  if (dash) dash.style.display = "none";
+  if (statsBar) statsBar.style.display = "flex";
+  if (prog) prog.style.display = "";
+  if (modeTextEl) modeTextEl.textContent = currentView === "bosses" ? "Mode: Boss 👑" : "Mode: Dinos 🦖";
+}
+
+function setView(view) {
+  if (view === "bosses") currentView = "bosses";
+  else if (view === "dinos") currentView = "dinos";
+  else currentView = "dashboard";
+  updateViewButtons();
+  render();
+}
+
+
+function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function isTamed(t){ return state[t] && (state[t].m || state[t].f); }
+function toggle(t, s, v){
+  state[t] = state[t] || {m:false,f:false};
+  state[t][s] = v;
+  maybeRecordProgressSnapshot();
+  saveState();
+  render();
+  if (window.__saveToFirebase) window.__saveToFirebase();
+}
+
+
+// ========= Tableau de bord / stats globales =========
+const HISTORY_LIMIT = 240;
+
+function ensureMetaRoot(create=false) {
+  if (!state || typeof state !== "object" || Array.isArray(state)) state = {};
+  if (!state.__meta || typeof state.__meta !== "object" || Array.isArray(state.__meta)) {
+    if (!create) return null;
+    state.__meta = {};
+  }
+  return state.__meta;
+}
+
+function getHistory(create=false) {
+  const meta = ensureMetaRoot(create);
+  if (!meta) return [];
+  if (!Array.isArray(meta.progressHistory)) {
+    if (!create) return [];
+    meta.progressHistory = [];
+  }
+  return meta.progressHistory;
+}
+
+function countDinosDone() {
+  let done = 0;
+  for (const t of DINO_TITLES) if (isTamed(t)) done++;
+  return done;
+}
+
+function countDinoSexChecks() {
+  let done = 0;
+  for (const t of DINO_TITLES) {
+    const x = state[t] || {};
+    if (x.m) done++;
+    if (x.f) done++;
+  }
+  return done;
+}
+
+function getBossSummary() {
+  let maps = BOSS_MAPS.length;
+  let bossEntriesTotal = 0;
+  let bossEntriesDone = 0;
+  let unitsTotal = 0;
+  let unitsDone = 0;
+
+  for (const entry of BOSS_MAPS) {
+    for (const b of (entry.bosses || [])) {
+      bossEntriesTotal++;
+      const c = getBossChecks(entry.map, b.name);
+      if ((b.difficulties || "gba") === "na") {
+        unitsTotal += 1;
+        if (c.done) { unitsDone += 1; bossEntriesDone += 1; }
+      } else {
+        unitsTotal += 3;
+        if (c.g) unitsDone++;
+        if (c.b) unitsDone++;
+        if (c.a) unitsDone++;
+        if (c.g && c.b && c.a) bossEntriesDone++;
+      }
+    }
+  }
+
+  return {
+    maps,
+    bossEntriesTotal,
+    bossEntriesDone,
+    bossEntriesRemaining: Math.max(0, bossEntriesTotal - bossEntriesDone),
+    unitsTotal,
+    unitsDone,
+    unitsRemaining: Math.max(0, unitsTotal - unitsDone)
+  };
+}
+
+function currentProgressSnapshot() {
+  const boss = getBossSummary();
+  return {
+    ts: Date.now(),
+    dinoDone: countDinosDone(),
+    dinoSexChecks: countDinoSexChecks(),
+    bossUnitsDone: boss.unitsDone,
+    bossUnitsTotal: boss.unitsTotal,
+    bossEntriesDone: boss.bossEntriesDone,
+    bossEntriesTotal: boss.bossEntriesTotal
+  };
+}
+
+function maybeRecordProgressSnapshot(force=false) {
+  const h = getHistory(true);
+  const snap = currentProgressSnapshot();
+  const last = h.length ? h[h.length - 1] : null;
+
+  const changed = !last ||
+    last.dinoDone !== snap.dinoDone ||
+    last.bossUnitsDone !== snap.bossUnitsDone ||
+    last.dinoSexChecks !== snap.dinoSexChecks;
+
+  if (!force && !changed) return false;
+
+  if (last && force) {
+    // évite de spammer si la page rerender sans vraie progression
+    const ageMs = Math.abs((snap.ts || 0) - (last.ts || 0));
+    if (!changed && ageMs < 60_000) return false;
+  }
+
+  h.push(snap);
+  if (h.length > HISTORY_LIMIT) h.splice(0, h.length - HISTORY_LIMIT);
+  return true;
+}
+
+function ensureProgressHistorySeed() {
+  if (maybeRecordProgressSnapshot(true)) {
+    try { saveState(); } catch(_e) {}
+  }
+}
+
+function formatShortDate(ts) {
+  try {
+    const d = new Date(ts);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" });
+  } catch(_e) { return "—"; }
+}
+
+function buildLineChartSvg(history, kind, maxY) {
+  const width = 800, height = 220;
+  const padL = 34, padR = 12, padT = 12, padB = 26;
+  const innerW = width - padL - padR;
+  const innerH = height - padT - padB;
+
+  const points = (history || []).map((h, idx) => ({
+    x: padL + (history.length <= 1 ? 0 : (idx * innerW / (history.length - 1))),
+    yv: Number(kind === "boss" ? (h.bossUnitsDone ?? 0) : (h.dinoDone ?? 0)),
+  }));
+
+  const safeMax = Math.max(1, Number(maxY) || 1);
+  const ptStr = points.map(p => {
+    const y = padT + innerH - (Math.max(0, Math.min(safeMax, p.yv)) / safeMax) * innerH;
+    return `${p.x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+
+  const lastVal = points.length ? points[points.length - 1].yv : 0;
+  const lastY = points.length ? (padT + innerH - (Math.max(0, Math.min(safeMax, lastVal)) / safeMax) * innerH) : (padT + innerH);
+  const areaPts = points.length
+    ? `${padL},${padT + innerH} ${ptStr} ${padL + innerW},${padT + innerH}`
+    : "";
+
+  const gridLines = [0, 0.25, 0.5, 0.75, 1].map(r => {
+    const y = (padT + innerH - r * innerH).toFixed(1);
+    return `<line x1="${padL}" y1="${y}" x2="${padL + innerW}" y2="${y}" stroke="rgba(0,0,0,.08)" stroke-width="1" />`;
+  }).join("");
+
+  const yTicks = [1, 0.5, 0].map(r => {
+    const y = (padT + innerH - r * innerH).toFixed(1);
+    const v = Math.round(r * safeMax);
+    return `<text x="${padL - 6}" y="${Number(y)+4}" text-anchor="end" font-size="10" fill="#66757f" font-weight="700">${v}</text>`;
+  }).join("");
+
+  if (!points.length) {
+    return `<svg class="chart-svg" viewBox="0 0 ${width} ${height}" aria-label="Aucune donnée"><text x="${width/2}" y="${height/2}" text-anchor="middle" font-size="13" fill="#66757f" font-weight="700">Aucune donnée pour le moment</text></svg>`;
+  }
+
+  return `<svg class="chart-svg" viewBox="0 0 ${width} ${height}" aria-label="Graphique progression">
+    ${gridLines}
+    <line x1="${padL}" y1="${padT + innerH}" x2="${padL + innerW}" y2="${padT + innerH}" stroke="rgba(0,0,0,.18)" stroke-width="1.2"/>
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + innerH}" stroke="rgba(0,0,0,.12)" stroke-width="1"/>
+    ${yTicks}
+    <polyline points="${areaPts}" fill="rgba(38,166,154,.10)" stroke="none"></polyline>
+    <polyline points="${ptStr}" fill="none" stroke="rgba(30,142,132,.95)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+    <circle cx="${(padL + innerW).toFixed(1)}" cy="${lastY.toFixed(1)}" r="4" fill="rgba(30,142,132,1)"></circle>
+  </svg>`;
+}
+
+function renderDashboard() {
+  const dash = document.getElementById("dashboard");
+  if (!dash) return;
+
+  ensureProgressHistorySeed();
+
+  const dinoDone = countDinosDone();
+  const dinoTotal = DINO_TITLES.length;
+  const dinoRemaining = Math.max(0, dinoTotal - dinoDone);
+
+  const boss = getBossSummary();
+
+  const historyRaw = getHistory(false).slice(-HISTORY_LIMIT);
+  const history = historyRaw.length ? historyRaw : [currentProgressSnapshot()];
+  const dinoChart = buildLineChartSvg(history, "dino", dinoTotal || 1);
+  const bossChart = buildLineChartSvg(history, "boss", boss.unitsTotal || 1);
+
+  const firstDate = history.length ? formatShortDate(history[0].ts) : "—";
+  const lastDate = history.length ? formatShortDate(history[history.length - 1].ts) : "—";
+  const samplesCount = history.length;
+
+  const globalDone = dinoDone + boss.unitsDone;
+  const globalTotal = dinoTotal + boss.unitsTotal;
+  const globalRemaining = Math.max(0, globalTotal - globalDone);
+
+  dash.innerHTML = `
+    <section class="dash-card wide">
+      <h2 class="dash-title">Tableau de bord progression 📊</h2>
+      <p class="dash-sub">Vue d'ensemble avant d'ouvrir la checklist dinos ou la checklist boss.</p>
+      <div class="dash-metrics">
+        <div class="metric">
+          <div class="label">Dinos tamés</div>
+          <div class="big">${dinoDone} / ${dinoTotal}</div>
+          <div class="small">Restants : ${dinoRemaining}</div>
+        </div>
+        <div class="metric">
+          <div class="label">Boss (difficultés)</div>
+          <div class="big">${boss.unitsDone} / ${boss.unitsTotal}</div>
+          <div class="small">Restantes : ${boss.unitsRemaining}</div>
+        </div>
+        <div class="metric">
+          <div class="label">Boss (combats complets)</div>
+          <div class="big">${boss.bossEntriesDone} / ${boss.bossEntriesTotal}</div>
+          <div class="small">Restants : ${boss.bossEntriesRemaining}</div>
+        </div>
+        <div class="metric">
+          <div class="label">Progression globale</div>
+          <div class="big">${globalDone} / ${globalTotal}</div>
+          <div class="small">Restants : ${globalRemaining}</div>
+        </div>
+      </div>
+      <div class="dash-progress-row">
+        <span class="pill">Dinos</span>
+        <progress value="${dinoDone}" max="${Math.max(1, dinoTotal)}"></progress>
+        <span class="pill">${Math.round((dinoDone / Math.max(1, dinoTotal)) * 100)}%</span>
+      </div>
+      <div class="dash-progress-row">
+        <span class="pill">Boss</span>
+        <progress value="${boss.unitsDone}" max="${Math.max(1, boss.unitsTotal)}"></progress>
+        <span class="pill">${Math.round((boss.unitsDone / Math.max(1, boss.unitsTotal)) * 100)}%</span>
+      </div>
+    </section>
+
+    <section class="dash-card">
+      <div class="chart-wrap">
+        <div class="chart-head">
+          <div>
+            <div class="caption">Évolution des dinos tamés</div>
+            <div class="value">${dinoDone} / ${dinoTotal}</div>
+          </div>
+          <div class="caption">${samplesCount} point(s)</div>
+        </div>
+        ${dinoChart}
+        <div class="chart-axes"><span>${firstDate}</span><span>${lastDate}</span></div>
+      </div>
+    </section>
+
+    <section class="dash-card">
+      <div class="chart-wrap">
+        <div class="chart-head">
+          <div>
+            <div class="caption">Évolution des boss (difficultés cochées)</div>
+            <div class="value">${boss.unitsDone} / ${boss.unitsTotal}</div>
+          </div>
+          <div class="caption">${boss.maps} map(s)</div>
+        </div>
+        ${bossChart}
+        <div class="chart-axes"><span>${firstDate}</span><span>${lastDate}</span></div>
+      </div>
+    </section>
+  `;
+
+  const statsText = document.getElementById("statsText");
+  const shownText = document.getElementById("shownText");
+  const prog = document.getElementById("prog");
+  if (statsText) statsText.textContent = `Tableau de bord · Dinos ${dinoDone}/${dinoTotal} · Boss ${boss.unitsDone}/${boss.unitsTotal}`;
+  if (shownText) shownText.textContent = `Historique: ${samplesCount} point(s)`;
+  if (prog) { prog.max = Math.max(1, globalTotal); prog.value = globalDone; }
+}
+
+
+// ========= Icônes (Fandom + wiki.gg fallback, sans toucher au reste) =========
+const __missingIcons = new Set();
+
+function normalizeDinoKey(s) {
+  return (s || "")
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/œ/g, "oe")
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9]+/g, "")
+    .trim();
+}
+
+const DINO_FR_TO_EN = {
+  "allosaure": "Allosaurus",
+  "ankylosaure": "Ankylosaurus",
+  "araneo": "Araneo",
+  "archelopteryx": "Archaeopteryx",
+  "archeopteryx": "Archaeopteryx",
+  "archelon": "Archelon",
+  "argentavis": "Argentavis",
+  "armadoggo": "Armadoggo",
+  "arthropleura": "Arthropluera",
+  "baryonyx": "Baryonyx",
+  "basilic": "Basilisk",
+  "basilosaure": "Basilosaurus",
+  "beelzebufo": "Beelzebufo",
+  "brontosaure": "Brontosaurus",
+  "bousier": "Dung Beetle",
+  "bison": "Bison",
+  "carbonemys": "Carbonemys",
+  "carcharodontosaure": "Carcharodontosaurus",
+  "carnotaure": "Carnotaurus",
+  "castoroides": "Castoroides",
+  "chat": "Cat",
+  "ceratosaure": "Ceratosaurus",
+  "ceratosaure": "Ceratosaurus",
+  "chalicothere": "Chalicotherium",
+  "coelacanthe": "Coelacanth",
+  "compy": "Compy",
+  "cosmo": "Cosmo",
+  "cryolophosaure": "Cryolophosaurus",
+  "daeodon": "Daeodon",
+  "deinonychus": "Deinonychus",
+  "deinosuchus": "Deinosuchus",
+  "deinotherium": "Deinotherium",
+  "dilophosaure": "Dilophosaur",
+  "dimetrodon": "Dimetrodon",
+  "dimorphodon": "Dimorphodon",
+  "diplocaulus": "Diplocaulus",
+  "diplodocus": "Diplodocus",
+  "ourssinistre": "Dire Bear",
+  "loupsinistre": "Direwolf",
+  "dodo": "Dodo",
+  "doedicurus": "Doedicurus",
+  "drakeling": "Drakeling",
+  "dreadnoughtus": "Dreadnoughtus",
+  "dreadmare": "Dreadmare",
+  "dunkleosteus": "Dunkleosteus",
+  "elderclaw": "Elderclaw",
+  "electrophorus": "Electrophorus",
+  "equus": "Equus",
+  "fasolasuchus": "Fasolasuchus",
+  "lumicorne": "Featherlight",
+  "featherlight": "Featherlight",
+  "gacha": "Gacha",
+  "gallimimus": "Gallimimus",
+  "gasbag": "Gasbags",
+  "gasbags": "Gasbags",
+  "abeillegeante": "Giant Bee",
+  "gigadesmodus": "Gigadesmodus",
+  "giganotosaure": "Giganotosaurus",
+  "gigantopitheque": "Gigantopithecus",
+  "gigantoraptor": "Gigantoraptor",
+  "griffon": "Griffin",
+  "helicoprion": "Helicoprion",
+  "hesperornis": "Hesperornis",
+  "hyenodon": "Hyaenodon",
+  "ichthyornis": "Ichthyornis",
+  "ichthyosaure": "Ichthyosaurus",
+  "iguanodon": "Iguanodon",
+  "jerboa": "Jerboa",
+  "kairuku": "Kairuku",
+  "kaprosuchus": "Kaprosuchus",
+  "karkinos": "Karkinos",
+  "kentrosaure": "Kentrosaurus",
+  "lymantria": "Lymantria",
+  "lystrosaure": "Lystrosaurus",
+  "maeguana": "Maeguana",
+  "mammouth": "Mammoth",
+  "managarmr": "Managarmr",
+  "manta": "Manta",
+  "mantis": "Mantis",
+  "megalania": "Megalania",
+  "megaloceros": "Megaloceros",
+  "megalodon": "Megalodon",
+  "megalosaure": "Megalosaurus",
+  "megaraptor": "Megaraptor",
+  "megatherium": "Megatherium",
+  "mesopitheque": "Mesopithecus",
+  "microraptor": "Microraptor",
+  "morellatops": "Morellatops",
+  "mosasaure": "Mosasaurus",
+  "moschops": "Moschops",
+  "oasisaure": "Oasisaur",
+  "onyc": "Onyc",
+  "loutre": "Otter",
+  "oviraptor": "Oviraptor",
+  "ovis": "Ovis",
+  "pachycephalosaurpachy": "Pachy",
+  "pachyrhinosaure": "Pachyrhinosaurus",
+  "paraceratherium": "Paraceratherium",
+  "parasaure": "Parasaur",
+  "pegomastax": "Pegomastax",
+  "pelagornis": "Pelagornis",
+  "phiomia": "Phiomia",
+  "phenix": "Phoenix",
+  "piranha": "Piranha",
+  "plesiosaure": "Plesiosaur",
+  "procoptodon": "Procoptodon",
+  "pteranadon": "Pteranodon",
+  "pteranodon": "Pteranodon",
+  "pulmonoscorpius": "Pulmonoscorpius",
+  "purlovia": "Purlovia",
+  "pyromane": "Pyromane",
+  "quetzal": "Quetzal",
+  "raptor": "Raptor",
+  "ravageur": "Ravager",
+  "faucheurreaper": "Reaper",
+  "rex": "Rex",
+  "rhyniognatha": "Rhyniognatha",
+  "drakedesroches": "Rock Drake",
+  "golemdepierre": "Rock Elemental",
+  "ratdesprofondeurs": "Roll Rat",
+  "smilodonsabertooth": "Sabertooth",
+  "saumonsabertooth": "Sabertooth Salmon",
+  "sarcosuchus": "Sarco",
+  "shastasaurus": "Shastasaurus",
+  "shinehorn": "Shinehorn",
+  "chouettedesneiges": "Snow Owl",
+  "solwyn": "Solwyn",
+  "spinosaure": "Spino",
+  "stegosaure": "Stegosaurus",
+  "tapejara": "Tapejara",
+  "oiseauterreur": "Terror Bird",
+  "therizinosaure": "Therizinosaur",
+  "lezardepineux": "Thorny Dragon",
+  "thrall": "Thrall",
+  "thylacoleo": "Thylacoleo",
+  "titanoboa": "Titanoboa",
+  "titanomyrma": "Titanomyrma",
+  "titanosaure": "Titanosaur",
+  "triceratops": "Triceratops",
+  "troodon": "Troodon",
+  "tusoteuthis": "Tusoteuthis",
+  "licorne": "Unicorn",
+  "veilwyn": "Veilwyn",
+  "velonasaure": "Velonasaur",
+  "vautour": "Vulture",
+  "rhinoceroslaineux": "Woolly Rhino",
+  "wyvernedefeu": "Fire Wyvern",
+  "wyvernedepoison": "Poison Wyvern",
+  "wyvernedeglace": "Ice Wyvern",
+  "wyvernedefoudre": "Lightning Wyvern",
+  "wyvernerunique": "Rune Wyvern",
+  "wyvernesaphir": "Sapphire Wyvern",
+  "wyvernevenin": "Venom Wyvern",
+  "xiphactinus": "Xiphactinus",
+  "yiling": "Yi Ling",
+  "yutyrannus": "Yutyrannus"
+};
+
+function fandomFilePath(name) {
+  const file = (name || "").trim().replace(/\s+/g, "_");
+  return "https://ark.fandom.com/wiki/Special:FilePath/" + encodeURIComponent(file) + ".png";
+}
+function wikiFilePath(name) {
+  const file = (name || "").trim().replace(/\s+/g, "_");
+  return "https://ark.wiki.gg/wiki/Special:FilePath/" + encodeURIComponent(file) + ".png";
+}
+
+function iconCandidates(t) {
+  const out = [];
+  const add = (v) => {
+    if (!v) return;
+    v = String(v).trim();
+    if (v && !out.includes(v)) out.push(v);
+  };
+
+  add(t);
+
+  const m = t.match(/\(([^)]+)\)/);
+  if (m && m[1]) add(m[1]);
+
+  const noParen = t.replace(/\s*\([^)]*\)\s*/g, " ").trim();
+  add(noParen);
+
+  const noTek = noParen.replace(/\s+TEK$/i, "").trim();
+  add(noTek);
+
+  // Saison -> Drakeling générique (wiki/Fandom utilisent souvent le fichier de base)
+  if (/^Drakeling\s+/i.test(noTek)) add("Drakeling");
+
+  // Mapping FR -> EN sur tous les candidats déjà connus
+  [...out].forEach(c => {
+    const mapped = DINO_FR_TO_EN[normalizeDinoKey(c)];
+    if (mapped) add(mapped);
+  });
+
+  // Yi Ling : plusieurs variantes de noms de fichier possibles
+  if (/^Yi\s*Ling$/i.test(noTek) || normalizeDinoKey(noTek) === "yiling") {
+    [
+      "Yi Ling", "Yi_Ling", "YiLing", "Yi-Ling",
+      "Yi Ling (ASA)", "Yi Ling (Creature)", "Yi Ling Creature"
+    ].forEach(add);
+  }
+
+  // FallBack wyvernes introuvables -> icônes de wyvernes classiques cohérentes
+  const norm = normalizeDinoKey(noTek);
+  if (norm === "wyvernerunique") {
+    ["Lightning Wyvern", "Fire Wyvern", "Poison Wyvern", "Ice Wyvern", "Wyvern"].forEach(add);
+  }
+  if (norm === "wyvernesaphir") {
+    ["Ice Wyvern", "Lightning Wyvern", "Wyvern"].forEach(add);
+  }
+  if (norm === "wyvernevenin") {
+    ["Poison Wyvern", "Fire Wyvern", "Wyvern"].forEach(add);
+  }
+
+  return out;
+}
+
+function card(t) {
+  const d = document.createElement("div");
+  d.className = "card" + (isTamed(t) ? " tamed" : "");
+
+  const top = document.createElement("div");
+  top.className = "top";
+
+  const icon = document.createElement("div");
+  icon.className = "icon";
+
+  const img = document.createElement("img");
+  img.alt = t;
+  img.loading = "lazy";
+
+  const candidates = iconCandidates(t);
+  let sourceIndex = 0; // 0 = fandom, 1 = wiki.gg
+  let candidateIndex = 0;
+
+  function nextUrl() {
+    if (sourceIndex === 0) return fandomFilePath(candidates[candidateIndex]);
+    if (sourceIndex === 1) return wikiFilePath(candidates[candidateIndex]);
+    return null;
+  }
+
+  img.onerror = () => {
+    candidateIndex++;
+    if (candidateIndex >= candidates.length) {
+      candidateIndex = 0;
+      sourceIndex++;
+    }
+    const url = nextUrl();
+    if (url) {
+      img.src = url;
+    } else {
+      __missingIcons.add(t);
+      icon.textContent = "🦖";
+    }
+  };
+
+  const firstUrl = nextUrl();
+  if (firstUrl) img.src = firstUrl;
+  else icon.textContent = "🦖";
+
+  icon.appendChild(img);
+
+  const name = document.createElement("div");
+  name.className = "name";
+  name.textContent = t;
+
+  top.appendChild(icon);
+  top.appendChild(name);
+
+  const checks = document.createElement("div");
+  checks.className = "checks";
+
+  ["m","f"].forEach(s => {
+    const l = document.createElement("label");
+    l.className = "chk";
+    const i = document.createElement("input");
+    i.type = "checkbox";
+    i.checked = !!(state[t] && state[t][s]);
+    i.onchange = e => toggle(t, s, e.target.checked);
+    l.appendChild(i);
+    l.appendChild(document.createTextNode(s === "m" ? "Mâle" : "Femelle"));
+    checks.appendChild(l);
+  });
+
+  d.appendChild(top);
+  d.appendChild(checks);
+  return d;
+}
+
+// Debug console: showMissingIcons()
+window.showMissingIcons = function() {
+  const list = [...__missingIcons].sort((a,b)=>a.localeCompare(b,'fr',{sensitivity:'base'}));
+  console.log("Icônes manquantes:", list);
+  return list;
+};
+
+function exportJson() {
+  const payload = {version: 3, exportedAt: new Date().toISOString(), dinos: DINO_TITLES, state};
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "crocs-mignons-export.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function resetAll() {
+  if (!confirm("Reset : décocher tout ?")) return;
+  state = {};
+  saveState();
+  render();
+  if (window.__saveToFirebase) window.__saveToFirebase(true);
+}
+
+function renderDinos() {
+  const grid = document.getElementById("grid");
+  const search = (document.getElementById("search").value || "").toLowerCase().trim();
+  grid.innerHTML = "";
+  let tamedCount = 0, shown = 0;
+
+  DINO_TITLES_SORTED.forEach(t => {
+    if (search && !t.toLowerCase().includes(search)) return;
+    grid.appendChild(card(t));
+    shown++;
+    if (isTamed(t)) tamedCount++;
+  });
+
+  document.getElementById("statsText").innerText = tamedCount + " / " + DINO_TITLES.length + " dinos tamés";
+  document.getElementById("shownText").innerText = "Affichés: " + shown;
+  const prog = document.getElementById("prog");
+  prog.max = DINO_TITLES.length || 1;
+  prog.value = tamedCount;
+}
+
+function render() {
+  if (currentView === "dashboard") return renderDashboard();
+  if (currentView === "bosses") return renderBosses();
+  return renderDinos();
+}
+
+document.getElementById("search").addEventListener("input", render);
+
+const dinoBtnEl = document.getElementById("dinoBtn");
+if (dinoBtnEl) dinoBtnEl.addEventListener("click", () => setView("dinos"));
+const bossBtnEl = document.getElementById("bossBtn");
+if (bossBtnEl) bossBtnEl.addEventListener("click", () => setView("bosses"));
+const backMenuBtnEl = document.getElementById("backMenuBtn");
+if (backMenuBtnEl) backMenuBtnEl.addEventListener("click", () => setView("dashboard"));
+
+const resetBtnEl = document.getElementById("reset");
+if (resetBtnEl) resetBtnEl.addEventListener("click", resetAll);
+const exportBtnEl = document.getElementById("export");
+if (exportBtnEl) exportBtnEl.addEventListener("click", exportJson);
+
+ensureProgressHistorySeed();
+updateViewButtons();
+render();
+</script>
+
+<!-- ========= Firebase Realtime Database (synchro cases entre amis) ========= -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBErcoaYkOucN6ljj-Yv6X32DaOO7DH0Uc",
+  authDomain: "les-crocs-mignons.firebaseapp.com",
+  databaseURL: "https://les-crocs-mignons-default-rtdb.europe-west1.firebasedatabase.app/",
+  projectId: "les-crocs-mignons",
+  storageBucket: "les-crocs-mignons.firebasestorage.app",
+  messagingSenderId: "219761916466",
+  appId: "1:219761916466:web:ced6cb5116a9ec60019a2b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app, firebaseConfig.databaseURL);
+const SYNC_PATH = "crocsMignons/state_v3";
+
+const syncText = document.getElementById("syncText");
+function setSync(msg){ if(syncText) syncText.textContent = msg; }
+
+// Ajout bouton déconnexion sans toucher à la logique checklist/icônes
+(function addLogoutButton(){
+  const controls = document.querySelector(".controls");
+  if (!controls || document.getElementById("logoutBtn")) return;
+  const btn = document.createElement("button");
+  btn.id = "logoutBtn";
+  btn.textContent = "Déconnexion";
+  btn.style.background = "#c62828";
+  btn.addEventListener("click", async () => {
+    try { await signOut(auth); } catch(e) { console.error(e); }
+    window.location.href = "./index.html";
+  });
+  controls.appendChild(btn);
+})();
+
+// Empêche boucle : quand Firebase met à jour, on ne renvoie pas tout de suite
+let applyingRemote = false;
+let syncStarted = false;
+let remoteUnsub = null;
+
+// Tant que l'utilisateur n'est pas connecté
+window.__saveToFirebase = async function() {
+  setSync("Sync: connexion requise 🔒");
+};
+
+function startRealtimeSync() {
+  if (syncStarted) return;
+  syncStarted = true;
+
+  window.__saveToFirebase = async function(force=false){
+    if (applyingRemote && !force) return;
+    try {
+      setSync("Sync: envoi…");
+      await set(ref(db, SYNC_PATH), state);
+      setSync("Sync: ok ✅");
+    } catch(e) {
+      console.error(e);
+      setSync("Sync: erreur ❌");
+    }
+  };
+
+  remoteUnsub = onValue(ref(db, SYNC_PATH), (snapshot) => {
+    const data = snapshot.val();
+    if (!data) {
+      setSync("Sync: vide (init) ⏳");
+      return;
+    }
+    applyingRemote = true;
+    state = data;
+    ensureProgressHistorySeed();
+    localStorage.setItem("crocs_mignons_state_v3", JSON.stringify(state));
+    render();
+    applyingRemote = false;
+    setSync("Sync: reçu ✅");
+  });
+}
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    setSync("Sync: connexion requise 🔒");
+    if (remoteUnsub) {
+      try { remoteUnsub(); } catch(_e) {}
+      remoteUnsub = null;
+      syncStarted = false;
+    }
+    setTimeout(() => {
+      if (!auth.currentUser) window.location.href = "./index.html";
+    }, 120);
+    return;
+  }
+
+  startRealtimeSync();
+  setSync("Sync: connecté ✅");
+});
+</script>
+</body>
+</html>

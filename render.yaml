@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: ark-repro-backend
+    runtime: docker
+    plan: starter
+    autoDeploy: true
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: APP_MODE
+        value: production
+      - key: MAX_UPLOAD_MB
+        value: "250"
+      - key: ARK_VISION_PROVIDER
+        value: openai
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini
+      # A renseigner dans Render (secret):
+      # - key: OPENAI_API_KEY
+      #   sync: false
+      # Réglages optionnels:
+      - key: ARK_VISION_BATCH_SIZE
+        value: "6"
+      - key: ARK_VISION_MAX_CALL_FRAMES
+        value: "18"
+      - key: ARK_VISION_IMAGE_DETAIL
+        value: low

@@ -1,0 +1,213 @@
+.result-card {
+  background: rgba(12, 20, 44, 0.9);
+  border: 1px solid rgba(120, 160, 255, 0.18);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.result-card-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.repro-pairs-content {
+  display: grid;
+  gap: 10px;
+}
+
+.repro-pair {
+  border: 1px solid rgba(120, 160, 255, 0.16);
+  background: rgba(8, 14, 32, 0.8);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.repro-pair-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.repro-pair-title {
+  font-weight: 800;
+  color: #fff;
+  font-size: 15px;
+}
+
+.repro-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.repro-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(130, 210, 255, 0.25);
+  background: rgba(45, 80, 150, 0.25);
+  color: #cfe4ff;
+}
+
+.repro-animals {
+  display: grid;
+  gap: 8px;
+}
+
+.repro-animal {
+  border-radius: 10px;
+  padding: 9px;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.02);
+}
+
+.repro-animal.male {
+  border-left: 4px solid #66b3ff;
+}
+
+.repro-animal.female {
+  border-left: 4px solid #ff87d7;
+}
+
+.repro-line1 {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.repro-name {
+  font-weight: 700;
+  color: #fff;
+}
+
+.repro-meta {
+  font-size: 12px;
+  color: #b7c7ee;
+}
+
+.repro-stats {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #dde7ff;
+  line-height: 1.45;
+}
+
+.repro-footer {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #b7c7ee;
+}
+
+.repro-warning {
+  color: #ffd38b;
+}
+
+.muted {
+  color: #9fb0d9;
+  font-size: 13px;
+}
+
+
+/* --- Correction manuelle (patch) --- */
+.repro-edit-card { margin-top: 12px; }
+.repro-edit-help {
+  color: #c5d4ff;
+  font-size: 12px;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.repro-edit-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.repro-mini-btn {
+  border: 1px solid rgba(136, 170, 255, 0.25);
+  background: rgba(22, 34, 66, 0.85);
+  color: #eaf1ff;
+  border-radius: 10px;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.repro-mini-btn:hover { border-color: rgba(160, 191, 255, 0.45); }
+.repro-mini-btn.danger {
+  border-color: rgba(255, 98, 98, 0.35);
+  color: #ffd9d9;
+}
+.repro-mini-btn.warn {
+  border-color: rgba(255, 191, 96, 0.35);
+  color: #ffe5b7;
+}
+.repro-edit-table-wrap {
+  overflow: auto;
+  border: 1px solid rgba(136,170,255,.14);
+  border-radius: 12px;
+}
+.repro-edit-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+  font-size: 12px;
+}
+.repro-edit-table thead th {
+  text-align: left;
+  padding: 8px 10px;
+  color: #a9befc;
+  background: rgba(12, 22, 43, .85);
+  border-bottom: 1px solid rgba(136,170,255,.12);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.repro-edit-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(136,170,255,.08);
+  vertical-align: top;
+}
+.repro-edit-table .stats-cell {
+  min-width: 280px;
+  color: #dce7ff;
+}
+.repro-edit-table td.actions {
+  min-width: 320px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.repro-edit-row.excluded {
+  opacity: 0.52;
+  background: rgba(255, 90, 90, 0.05);
+}
+.repro-edit-row.edited {
+  background: rgba(103, 203, 255, 0.05);
+}
+.repro-edit-row.flagfalse {
+  outline: 1px dashed rgba(255, 196, 97, 0.35);
+  outline-offset: -1px;
+}
+.repro-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 8px;
+}
+.repro-summary-grid > div {
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(136,170,255,.10);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.repro-summary-grid span { color: #a9befc; font-size: 12px; }
+.repro-summary-grid strong { color: #fff; font-size: 14px; }

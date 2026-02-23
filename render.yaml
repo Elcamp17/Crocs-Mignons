@@ -2,7 +2,7 @@ services:
   - type: web
     name: ark-repro-backend
     runtime: docker
-    plan: starter
+    plan: free
     autoDeploy: true
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health

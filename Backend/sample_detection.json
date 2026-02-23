@@ -1,0 +1,52 @@
+{
+  "specimens": [
+    {
+      "label": "M447",
+      "sex": "m",
+      "species": "Ankylosaurus",
+      "stage": "adult",
+      "level": 447,
+      "wild": {
+        "health": 73,
+        "stamina": 83,
+        "weight": 59,
+        "oxygen": 72,
+        "food": 78,
+        "melee": 81
+      },
+      "confidence": 0.94
+    },
+    {
+      "label": "F463",
+      "sex": "f",
+      "species": "Ankylosaurus",
+      "stage": "adult",
+      "level": 463,
+      "wild": {
+        "health": 59,
+        "stamina": 83,
+        "weight": 80,
+        "oxygen": 79,
+        "food": 80,
+        "melee": 81
+      },
+      "confidence": 0.95
+    },
+    {
+      "label": "F447",
+      "sex": "f",
+      "species": "Ankylosaurus",
+      "stage": "adult",
+      "level": 447,
+      "wild": {
+        "health": 73,
+        "stamina": 83,
+        "weight": 59,
+        "oxygen": 72,
+        "food": 78,
+        "melee": 81
+      },
+      "confidence": 0.93
+    }
+  ]
+}

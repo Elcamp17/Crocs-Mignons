@@ -1,0 +1,172 @@
+from __future__ import annotations
+
+import base64
+import io
+import json
+import os
+import tempfile
+import logging
+import traceback
+from typing import Any, Dict
+
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+
+try:
+    from .video_extract import extract_candidate_frames
+    from .analyzer import analyze_candidate_frames, AnalyzerNotConfiguredError
+    from .repro_logic import build_repro_report
+except ImportError:  # exécution directe dans /app
+    from video_extract import extract_candidate_frames
+    from analyzer import analyze_candidate_frames, AnalyzerNotConfiguredError
+    from repro_logic import build_repro_report
+
+APP_MODE = os.getenv("APP_MODE", "dev")
+MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "250"))
+
+app = FastAPI(title="ARK Repro Video Analyzer", version="0.1.0")
+logger = logging.getLogger("uvicorn.error")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+_here = os.path.dirname(__file__)
+FRONTEND_DIR = os.path.join(_here, "frontend")
+if not os.path.isdir(FRONTEND_DIR):
+    # repo mode: backend/ + frontend/ as siblings
+    FRONTEND_DIR = os.path.normpath(os.path.join(_here, "..", "frontend"))
+if os.path.isdir(FRONTEND_DIR):
+    app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
+
+
+@app.get("/")
+def root_ui():
+    if os.path.isdir(FRONTEND_DIR):
+        return FileResponse(os.path.join(FRONTEND_DIR, "repro.html"))
+    return {"ok": True, "message": "Frontend non embarqué"}
+
+
+@app.get("/repro")
+def repro_ui():
+    if os.path.isdir(FRONTEND_DIR):
+        return FileResponse(os.path.join(FRONTEND_DIR, "repro.html"))
+    raise HTTPException(status_code=404, detail="Frontend non embarqué")
+
+
+@app.get("/repro.html")
+def repro_html_ui():
+    return repro_ui()
+
+
+@app.get("/checklist.html")
+def checklist_ui():
+    if os.path.isdir(FRONTEND_DIR):
+        return FileResponse(os.path.join(FRONTEND_DIR, "checklist.html"))
+    raise HTTPException(status_code=404, detail="Frontend non embarqué")
+
+
+@app.get("/scan.html")
+def scan_ui():
+    if os.path.isdir(FRONTEND_DIR):
+        return FileResponse(os.path.join(FRONTEND_DIR, "scan.html"))
+    raise HTTPException(status_code=404, detail="Frontend non embarqué")
+
+
+def _analyzer_mode() -> str:
+    if os.getenv("ARK_VISION_PROVIDER", "").strip():
+        return os.getenv("ARK_VISION_PROVIDER", "vision-plugin")
+    return "frames-only (configure analyzer)"
+
+
+@app.get("/health")
+def health() -> Dict[str, Any]:
+    return {
+        "ok": True,
+        "mode": _analyzer_mode(),
+        "max_upload_mb": MAX_UPLOAD_MB,
+        "app_mode": APP_MODE,
+    }
+
+
+@app.post("/analyze-repro-video")
+async def analyze_repro_video(
+    file: UploadFile = File(...),
+    min_confidence_percent: float = Form(72),
+    frame_step_sec: float = Form(0.5),
+    max_frames: int = Form(120),
+):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Nom de fichier manquant")
+
+    ctype = (file.content_type or "").lower()
+    if "video" not in ctype and not file.filename.lower().endswith((".mp4", ".mov", ".mkv", ".webm")):
+        raise HTTPException(status_code=400, detail="Fichier vidéo attendu (MP4 de préférence)")
+
+    raw = await file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="Fichier vide")
+    if len(raw) > MAX_UPLOAD_MB * 1024 * 1024:
+        raise HTTPException(status_code=413, detail=f"Fichier trop volumineux (> {MAX_UPLOAD_MB} Mo)")
+
+    min_confidence = max(0.0, min(1.0, float(min_confidence_percent) / 100.0))
+    frame_step_sec = max(0.1, min(2.0, float(frame_step_sec)))
+    max_frames = max(10, min(300, int(max_frames)))
+
+    with tempfile.TemporaryDirectory(prefix="arkrepro_") as td:
+        ext = os.path.splitext(file.filename)[1] or ".mp4"
+        video_path = os.path.join(td, f"upload{ext}")
+        with open(video_path, "wb") as f:
+            f.write(raw)
+
+        try:
+            frames = extract_candidate_frames(video_path, frame_step_sec=frame_step_sec, max_frames=max_frames)
+        except Exception as e:
+            logger.exception("Extraction vidéo impossible")
+            raise HTTPException(status_code=500, detail=f"Extraction vidéo impossible: {e}") from e
+
+        warning = None
+        specimens = []
+        analyzer_meta: Dict[str, Any] = {"analyzer_mode": _analyzer_mode()}
+
+        try:
+            specimens, analyzer_meta = analyze_candidate_frames(frames, min_confidence=min_confidence)
+        except AnalyzerNotConfiguredError as e:
+            logger.warning("Analyzer non configuré: %s", e)
+            warning = str(e)
+        except Exception as e:
+            logger.exception("Erreur analyse_candidate_frames")
+            # Si c'est une exception OpenAI avec réponse HTTP, on essaie d'afficher plus de détails.
+            try:
+                resp = getattr(e, "response", None)
+                if resp is not None:
+                    logger.error("OpenAI error response: %s", getattr(resp, "text", str(resp)))
+            except Exception:
+                logger.exception("Erreur pendant le logging de la réponse OpenAI")
+            warning = f"Analyse IA indisponible: {e}"
+
+        report = build_repro_report(specimens)
+        report.setdefault("ok", True)
+        report["warning"] = warning
+        report["meta"] = {
+            **report.get("meta", {}),
+            **analyzer_meta,
+            "frames_total": len(frames),
+            "frames_kept": sum(1 for fr in frames if fr.get("is_candidate", True)),
+        }
+        report["frames"] = [_frame_preview(fr) for fr in frames[:60]]
+        return JSONResponse(report)
+
+
+def _frame_preview(frame: Dict[str, Any]) -> Dict[str, Any]:
+    out = {k: frame.get(k) for k in ["index", "time_sec", "sharpness", "confidence", "is_candidate"]}
+    img_bytes = frame.get("jpeg_bytes")
+    if img_bytes:
+        out["preview_data_url"] = "data:image/jpeg;base64," + base64.b64encode(img_bytes).decode("ascii")
+    return out

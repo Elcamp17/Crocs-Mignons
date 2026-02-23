@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Souvenirs - Crocs Mignons</title>
+<style>
+  :root {
+    --bg1:#e0f2f1; --bg2:#eef7f7; --card:#ffffffee; --line:#d7e4e3;
+    --title:#0f6b63; --muted:#4a6361; --danger:#c62828; --ok:#0f9d58;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color:#1d2a29;
+  }
+  header {
+    background: linear-gradient(90deg,#1e8e72,#43a047);
+    color:#fff;
+    text-align:center;
+    padding: 22px 16px;
+    box-shadow:0 8px 22px rgba(0,0,0,.12);
+  }
+  header h1 {
+    margin:0;
+    font-size: clamp(26px,4vw,44px);
+    font-weight: 900;
+    letter-spacing:.3px;
+    text-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .wrap { max-width: 1400px; margin: 18px auto 28px; padding: 0 14px; }
+  .topbar {
+    display:grid; grid-template-columns: 1fr auto auto; gap:12px;
+    align-items:center; background:var(--card); border:1px solid var(--line);
+    border-radius:18px; padding:12px; box-shadow:0 8px 20px rgba(0,0,0,.05);
+    margin-bottom:14px;
+  }
+  .topbar .title {
+    font-weight:900; color:var(--title); font-size: clamp(18px,2vw,24px);
+  }
+  button, .btn {
+    border:none; border-radius:12px; padding:11px 14px; font-weight:800;
+    font: inherit; cursor:pointer; color:#fff; text-decoration:none;
+    box-shadow:0 4px 10px rgba(0,0,0,.08);
+  }
+  .btn-back { background:#6d4c41; }
+  .btn-logout { background: linear-gradient(90deg,#e53935,#c62828); }
+  .panel {
+    background:var(--card); border:1px solid var(--line); border-radius:18px; padding:14px;
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+  }
+  .actions {
+    display:grid; grid-template-columns: 1.2fr 1fr; gap:14px; margin-bottom:14px;
+  }
+  .dropzone {
+    border:2px dashed #d0b0f2; border-radius:14px; background:#fbf8ff;
+    padding:16px; min-height: 150px; display:flex; flex-direction:column; justify-content:center;
+  }
+  .dropzone.drag { background:#f2fbff; border-color:#80cbc4; }
+  .dropzone h3 { margin:0 0 8px; color:#5e35b1; }
+  .dropzone p { margin:4px 0; color:var(--muted); font-weight:600; }
+  .action-col {
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .action-row { display:flex; flex-wrap:wrap; gap:10px; }
+  .btn-add { background:#0f8a83; }
+  .btn-clear { background:#546e7a; }
+  .helper { color:var(--muted); font-size:13px; }
+  .status {
+    margin-top:6px; font-weight:700; color:#1f4f4b;
+  }
+  .gallery-head {
+    display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;
+  }
+  .gallery-head h2 { margin:0; color:var(--title); font-size:22px; }
+  .count-pill {
+    background:#eef8f7; border:1px solid #cfe8e6; padding:6px 10px; border-radius:999px; font-weight:800;
+    color:#245652;
+  }
+  .gallery {
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(270px,1fr)); gap:14px;
+  }
+  .thumb {
+    background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden;
+    box-shadow:0 6px 16px rgba(0,0,0,.06); position:relative;
+  }
+  .thumb img {
+    width:100%; height:220px; object-fit:cover; display:block; background:#dfe8e7;
+    cursor: zoom-in;
+  }
+  .thumb .meta {
+    padding:10px 12px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .thumb .name {
+    min-width:0; font-weight:700; color:#214a46; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .thumb .date {
+    font-size:12px; color:#5f7572; margin-top:2px;
+  }
+  .thumb .trash {
+    position:absolute; top:8px; right:8px; width:34px; height:34px; border-radius:999px;
+    background: rgba(198,40,40,.96); display:grid; place-items:center; padding:0; font-size:16px;
+  }
+  .thumb .trash:hover { filter:brightness(1.05); }
+  .empty {
+    border:1px dashed #cfdedd; border-radius:14px; padding:22px; text-align:center; color:#5d7472;
+    background:#fbfefe; font-weight:700;
+  }
+  dialog#viewer {
+    border:none; border-radius:16px; padding:0; background:#111; width:min(92vw,1200px);
+  }
+  #viewer::backdrop { background: rgba(0,0,0,.65); }
+  .viewer-wrap { position:relative; }
+  .viewer-wrap img { width:100%; max-height:85vh; object-fit:contain; display:block; }
+  .viewer-close {
+    position:absolute; top:10px; right:10px; width:40px; height:40px; border-radius:999px;
+    background: rgba(0,0,0,.7); color:#fff; border:1px solid rgba(255,255,255,.2); cursor:pointer; font-size:18px;
+  }
+  @media (max-width: 900px) {
+    .actions { grid-template-columns:1fr; }
+    .topbar { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<header><h1>Souvenirs des Crocs Mignons 🖼️</h1></header>
+<div class="wrap">
+  <div class="topbar">
+    <div class="title">Galerie de screenshots</div>
+    <a class="btn btn-back" href="./checklist.html">← Retour dashboard</a>
+    <button id="logoutBtn" class="btn-logout">Déconnexion</button>
+  </div>
+
+  <section class="panel actions">
+    <div id="dropzone" class="dropzone" tabindex="0">
+      <h3>Ajoute des screenshots</h3>
+      <p>Dépose des images ici ou colle directement (Ctrl+V).</p>
+      <p>Tu peux aussi sélectionner plusieurs fichiers d’un coup.</p>
+      <div class="status" id="statusTxt">Prêt ✅</div>
+    </div>
+    <div class="action-col">
+      <div class="action-row">
+        <button id="pickBtn" class="btn-add">Choisir image(s)</button>
+        <button id="clearBtn" class="btn-clear">Tout supprimer</button>
+      </div>
+      <input id="fileInput" type="file" accept="image/*" multiple hidden />
+      <div class="helper">Les images sont compressées automatiquement avant sauvegarde pour éviter de saturer la base.</div>
+      <div class="helper">Clique sur une miniature pour l’ouvrir en grand. Bouton poubelle sur chaque image.</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="gallery-head">
+      <h2>Mes souvenirs</h2>
+      <div class="count-pill" id="countPill">0 image</div>
+    </div>
+    <div id="gallery" class="gallery"></div>
+  </section>
+</div>
+
+<dialog id="viewer">
+  <div class="viewer-wrap">
+    <button class="viewer-close" id="viewerClose" aria-label="Fermer">✕</button>
+    <img id="viewerImg" alt="Souvenir" />
+  </div>
+</dialog>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyBErcoaYkOucN6ljj-Yv6X32DaOO7DH0Uc",
+  authDomain: "les-crocs-mignons.firebaseapp.com",
+  databaseURL: "https://les-crocs-mignons-default-rtdb.europe-west1.firebasedatabase.app/",
+  projectId: "les-crocs-mignons",
+  storageBucket: "les-crocs-mignons.firebasestorage.app",
+  messagingSenderId: "219761916466",
+  appId: "1:219761916466:web:ced6cb5116a9ec60019a2b"
+};
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app, firebaseConfig.databaseURL);
+  const SYNC_PATH = "crocsMignons/souvenirs_v1";
+  const LOCAL_KEY = "crocs_mignons_souvenirs_v1";
+
+  let state = { items: [] };
+  let remoteUnsub = null;
+  let applyingRemote = false;
+
+  const $ = (id)=>document.getElementById(id);
+  const galleryEl = $("gallery");
+  const countPill = $("countPill");
+  const statusTxt = $("statusTxt");
+  const dropzone = $("dropzone");
+  const fileInput = $("fileInput");
+  const viewer = $("viewer");
+  const viewerImg = $("viewerImg");
+
+  function setStatus(msg) { statusTxt.textContent = msg; }
+
+  function normalizeState(data) {
+    if (!data || typeof data !== "object") return { items: [] };
+    const items = Array.isArray(data.items) ? data.items.filter(x=>x && x.id && x.dataUrl) : [];
+    items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    return { items };
+  }
+
+  function saveLocal() {
+    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(state)); } catch(e){ console.warn(e); }
+  }
+
+  async function saveRemote() {
+    if (!auth.currentUser) return;
+    try {
+      applyingRemote = true;
+      await set(ref(db, SYNC_PATH), state);
+      saveLocal();
+      setStatus("Sauvegardé ✅");
+    } catch (e) {
+      console.error(e);
+      setStatus("Erreur sauvegarde ❌");
+    } finally {
+      applyingRemote = false;
+    }
+  }
+
+  function render() {
+    const items = state.items || [];
+    countPill.textContent = items.length + " image" + (items.length>1?"s":"");
+    if (!items.length) {
+      galleryEl.innerHTML = '<div class="empty">Aucun screenshot pour le moment. Ajoute une image (bouton, glisser-déposer ou Ctrl+V).</div>';
+      return;
+    }
+    galleryEl.innerHTML = items.map(it => `
+      <article class="thumb" data-id="${it.id}">
+        <button type="button" class="trash" data-del="${it.id}" title="Supprimer">🗑️</button>
+        <img src="${it.dataUrl}" alt="${(it.name||"souvenir").replace(/"/g,'&quot;')}" data-open="${it.id}">
+        <div class="meta">
+          <div style="min-width:0">
+            <div class="name" title="${(it.name||"souvenir").replace(/"/g,'&quot;')}">${it.name || "souvenir"}</div>
+            <div class="date">${formatDate(it.createdAt)}</div>
+          </div>
+        </div>
+      </article>
+    `).join("");
+  }
+
+  function formatDate(ts) {
+    if (!ts) return "";
+    const d = new Date(ts);
+    return d.toLocaleString("fr-FR");
+  }
+
+  async function fileToDataUrl(file) {
+    const imgBitmap = await createImageBitmap(file);
+    const maxW = 1600, maxH = 1600;
+    let w = imgBitmap.width, h = imgBitmap.height;
+    const ratio = Math.min(1, maxW / w, maxH / h);
+    w = Math.max(1, Math.round(w * ratio));
+    h = Math.max(1, Math.round(h * ratio));
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext("2d", { alpha:false });
+    ctx.fillStyle = "#111"; ctx.fillRect(0,0,w,h);
+    ctx.drawImage(imgBitmap, 0,0,w,h);
+    return canvas.toDataURL("image/jpeg", 0.84);
+  }
+
+  async function addFiles(files, source="fichier") {
+    const list = Array.from(files || []).filter(f => f && (f.type||"").startsWith("image/"));
+    if (!list.length) {
+      setStatus("Aucune image détectée");
+      return;
+    }
+    setStatus("Import en cours…");
+    let added = 0;
+    for (const file of list) {
+      try {
+        const dataUrl = await fileToDataUrl(file);
+        state.items.unshift({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2),
+          name: file.name || `capture-${Date.now()}.jpg`,
+          dataUrl,
+          createdAt: Date.now(),
+          source
+        });
+        added++;
+      } catch (e) {
+        console.error("Image ignorée", e);
+      }
+    }
+    // limite simple pour éviter d'exploser la RTDB
+    if (state.items.length > 80) state.items = state.items.slice(0, 80);
+    render();
+    await saveRemote();
+    setStatus(`${added} image(s) ajoutée(s) ✅`);
+  }
+
+  async function addFromClipboard(e) {
+    const items = Array.from(e.clipboardData?.items || []);
+    const files = items.map(i => i.getAsFile && i.getAsFile()).filter(Boolean);
+    if (!files.length) return;
+    e.preventDefault();
+    await addFiles(files, "presse-papiers");
+  }
+
+  function removeItem(id) {
+    const before = state.items.length;
+    state.items = state.items.filter(x => x.id !== id);
+    if (state.items.length === before) return;
+    render();
+    saveRemote();
+  }
+
+  function clearAll() {
+    if (!confirm("Supprimer tous les souvenirs ?")) return;
+    state.items = [];
+    render();
+    saveRemote();
+  }
+
+  function openViewerById(id) {
+    const it = state.items.find(x=>x.id===id);
+    if (!it) return;
+    viewerImg.src = it.dataUrl;
+    if (typeof viewer.showModal === "function") viewer.showModal();
+  }
+
+  function startSync() {
+    if (remoteUnsub || !auth.currentUser) return;
+    remoteUnsub = onValue(ref(db, SYNC_PATH), (snap) => {
+      if (applyingRemote) return;
+      const data = snap.val();
+      state = normalizeState(data);
+      saveLocal();
+      render();
+      setStatus("Sync reçu ✅");
+    });
+  }
+
+  function loadLocal() {
+    try {
+      const raw = localStorage.getItem(LOCAL_KEY);
+      if (!raw) return;
+      state = normalizeState(JSON.parse(raw));
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+  $("pickBtn").addEventListener("click", ()=> fileInput.click());
+  fileInput.addEventListener("change", async (e) => {
+    await addFiles(e.target.files, "fichier");
+    e.target.value = "";
+  });
+  $("clearBtn").addEventListener("click", clearAll);
+  $("logoutBtn").addEventListener("click", async () => {
+    try { await signOut(auth); } catch(e){ console.error(e); }
+    location.href = "../index.html";
+  });
+  dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("drag"); });
+  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag"));
+  dropzone.addEventListener("drop", async (e) => {
+    e.preventDefault(); dropzone.classList.remove("drag");
+    await addFiles(e.dataTransfer?.files, "drop");
+  });
+  window.addEventListener("paste", addFromClipboard);
+  galleryEl.addEventListener("click", (e) => {
+    const del = e.target.closest("[data-del]");
+    if (del) return removeItem(del.dataset.del);
+    const open = e.target.closest("[data-open]");
+    if (open) return openViewerById(open.dataset.open);
+  });
+  $("viewerClose").addEventListener("click", () => viewer.close());
+  viewer.addEventListener("click", (e) => {
+    const rect = viewer.getBoundingClientRect();
+    const inDialog = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+    if (!inDialog) viewer.close();
+  });
+
+  loadLocal();
+  render();
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      setStatus("Connexion requise 🔒");
+      setTimeout(()=> { if (!auth.currentUser) location.href = "../index.html"; }, 100);
+      return;
+    }
+    startSync();
+    setStatus("Prêt ✅");
+  });
+</script>
+</body>
+</html>

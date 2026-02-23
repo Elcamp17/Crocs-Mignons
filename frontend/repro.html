@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARK ASA • Repro vidéo (backend IA)</title>
+  <style>
+    :root{--bg:#0b1020;--card:#151b2f;--muted:#9fb0d1;--text:#eef3ff;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--line:#28324f;--vio:#8b5cf6}
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;background:linear-gradient(180deg,#090d18,#0f1528);color:var(--text)}
+    .wrap{max-width:1200px;margin:0 auto;padding:20px}
+    .top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+    .title{font-size:clamp(22px,3vw,34px);font-weight:800}
+    .sub{color:var(--muted);font-size:14px}
+    .card{background:rgba(21,27,47,.96);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .grid{display:grid;gap:16px}
+    .grid.cols{grid-template-columns:1.15fr .85fr}
+    @media(max-width:980px){.grid.cols{grid-template-columns:1fr}}
+    .drop{border:2px dashed #495582;border-radius:16px;padding:22px;text-align:center;background:rgba(139,92,246,.08);cursor:pointer;transition:.15s}
+    .drop.drag{background:rgba(139,92,246,.16);border-color:#9c77ff}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn{border:none;background:#6d28d9;color:#fff;padding:10px 14px;border-radius:12px;font-weight:800;cursor:pointer}
+    .btn.secondary{background:#334155} .btn.ghost{background:transparent;border:1px solid var(--line)} .btn:disabled{opacity:.45;cursor:not-allowed}
+    input[type=file]{display:none}
+    label.field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+    input[type=text],input[type=number],input[type=url]{background:#0e1426;color:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:120px}
+    progress{width:100%;height:10px;accent-color:#8b5cf6}
+    .status{font-size:13px;color:var(--muted);white-space:pre-wrap}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px;color:#dbe4ff;background:#0e1426}
+    .ok{color:#86efac}.warn{color:#fcd34d}.bad{color:#fca5a5}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+    .kpi{background:#0e1426;border:1px solid var(--line);border-radius:12px;padding:10px}
+    .kpi .n{font-weight:800;font-size:20px}
+    .kpi .l{font-size:12px;color:var(--muted)}
+    .frames{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:420px;overflow:auto}
+    .thumb{border:1px solid var(--line);border-radius:12px;padding:8px;background:#0e1426}
+    .thumb img{width:100%;height:95px;object-fit:cover;border-radius:8px;background:#000;display:block}
+    .thumb small{display:block;margin-top:6px;color:var(--muted);line-height:1.25}
+    .list{display:grid;gap:10px}
+    .item{border:1px solid var(--line);background:#0e1426;border-radius:12px;padding:10px}
+    .item h4{margin:0 0 6px 0;font-size:14px}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{border-bottom:1px solid #24304f;padding:8px;text-align:left;vertical-align:top}
+    th{color:var(--muted);font-weight:700}
+    .badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#1f2937;border:1px solid #334155}
+    .hidden{display:none!important}
+    .muted{color:var(--muted)}
+    .notice{padding:10px 12px;border-radius:12px;border:1px solid #66532a;background:rgba(245,158,11,.08);color:#fcd34d;font-size:13px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="title">🧬 Repro ARK ASA (MP4 → analyse backend)</div>
+      <div class="sub">Version GitHub-ready : l’interface envoie la vidéo à un backend (FastAPI) pour extraction + analyse + conseils de repro.</div>
+    </div>
+    <a class="btn ghost" href="./checklist.html">⬅ Retour checklist</a>
+  </div>
+
+  <div class="grid cols">
+    <section class="card grid" style="align-content:start;">
+      <div class="row">
+        <label class="field">API backend
+          <input id="apiBase" type="url" placeholder="(vide = même URL que la page)" />
+        </label>
+        <label class="field">Confiance mini (%)
+          <input id="minConfidence" type="number" min="0" max="100" value="72" />
+        </label>
+        <label class="field">Intervalle frames (s)
+          <input id="frameStep" type="number" min="0.1" max="2" step="0.1" value="0.5" />
+        </label>
+        <label class="field">Frames max
+          <input id="maxFrames" type="number" min="10" max="300" step="1" value="120" />
+        </label>
+      </div>
+
+      <div id="drop" class="drop">
+        <div style="font-size:42px;line-height:1">🎞️</div>
+        <div style="font-weight:800;font-size:18px;margin-top:4px">Dépose un MP4 ici</div>
+        <div class="sub" style="margin-top:4px">ou clique pour choisir un fichier vidéo (.mp4)</div>
+        <input id="fileInput" type="file" accept="video/mp4,video/*" />
+      </div>
+
+      <div class="row">
+        <button id="analyzeBtn" class="btn" disabled>🚀 Analyser la vidéo</button>
+        <button id="resetBtn" class="btn secondary">♻️ Réinitialiser</button>
+        <span id="selectedFilePill" class="pill hidden"></span>
+        <span id="healthPill" class="pill">Backend: inconnu</span>
+      </div>
+
+      <div>
+        <progress id="progress" value="0" max="100"></progress>
+        <div id="status" class="status">Prêt.</div>
+      </div>
+
+      <div id="backendNotice" class="notice hidden"></div>
+
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <aside class="card" style="align-content:start;">
+      <h3 style="margin:0 0 10px 0">Résultat repro</h3>
+      <div id="resultBox" class="list">
+        <div class="item muted">Aucune analyse pour l’instant.</div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="card" style="margin-top:16px;">
+    <div class="row" style="justify-content:space-between;align-items:center;">
+      <h3 style="margin:0;">Frames candidates extraites</h3>
+      <span class="muted" id="framesCount">0 frame</span>
+    </div>
+    <div class="frames" id="framesGrid"></div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const els = {
+    apiBase: document.getElementById('apiBase'), fileInput: document.getElementById('fileInput'), drop: document.getElementById('drop'),
+    analyzeBtn: document.getElementById('analyzeBtn'), resetBtn: document.getElementById('resetBtn'), status: document.getElementById('status'),
+    progress: document.getElementById('progress'), selectedFilePill: document.getElementById('selectedFilePill'), healthPill: document.getElementById('healthPill'),
+    resultBox: document.getElementById('resultBox'), framesGrid: document.getElementById('framesGrid'), framesCount: document.getElementById('framesCount'),
+    minConfidence: document.getElementById('minConfidence'), frameStep: document.getElementById('frameStep'), maxFrames: document.getElementById('maxFrames'),
+    backendNotice: document.getElementById('backendNotice'), kpis: document.getElementById('kpis')
+  };
+  let selectedFile = null;
+  const lsKey = 'ark.repro.apiBase';
+  const savedApi = localStorage.getItem(lsKey) || '';
+  if (savedApi) els.apiBase.value = savedApi;
+
+  function setStatus(msg){ els.status.textContent = msg; }
+  function setProgress(v){ els.progress.value = Math.max(0, Math.min(100, Number(v)||0)); }
+  function setSelectedFile(file){
+    selectedFile = file || null;
+    if (selectedFile){
+      els.selectedFilePill.classList.remove('hidden');
+      els.selectedFilePill.textContent = `📦 ${selectedFile.name} • ${(selectedFile.size/1024/1024).toFixed(1)} Mo`;
+      els.analyzeBtn.disabled = false;
+    } else {
+      els.selectedFilePill.classList.add('hidden');
+      els.selectedFilePill.textContent = '';
+      els.analyzeBtn.disabled = true;
+    }
+  }
+  function apiBase(){ const v=(els.apiBase.value||'').trim().replace(/\/$/, ''); return v || (location.origin||'').replace(/\/$/, ''); }
+  function setHealth(ok, txt){ els.healthPill.textContent = `Backend: ${txt}`; els.healthPill.className = 'pill ' + (ok ? 'ok':'warn'); }
+  async function pingHealth(){
+    const base = apiBase();
+    if (!base){ setHealth(false, 'injoignable'); return; }
+    localStorage.setItem(lsKey, base);
+    try{
+      const r = await fetch(base + '/health');
+      const j = await r.json();
+      setHealth(!!j.ok, (j.mode ? `${j.mode}` : 'OK'));
+    }catch(e){ setHealth(false, 'injoignable'); }
+  }
+
+  function clearResult(){
+    els.resultBox.innerHTML = '<div class="item muted">Aucune analyse pour l'instant.</div>';
+    els.framesGrid.innerHTML = '';
+    els.framesCount.textContent = '0 frame';
+    els.kpis.innerHTML='';
+    els.backendNotice.classList.add('hidden');
+    els.backendNotice.textContent='';
+  }
+  function renderKpis(kpis){
+    els.kpis.innerHTML = '';
+    const entries = Object.entries(kpis || {});
+    for (const [label,val] of entries){
+      const el = document.createElement('div'); el.className='kpi';
+      el.innerHTML = `<div class="n">${val ?? '-'}</div><div class="l">${label}</div>`;
+      els.kpis.appendChild(el);
+    }
+  }
+  function renderFrames(frames){
+    els.framesGrid.innerHTML='';
+    els.framesCount.textContent = `${frames?.length||0} frame${(frames?.length||0)>1?'s':''}`;
+    for (const f of (frames||[])){
+      const d=document.createElement('div'); d.className='thumb';
+      const img = f.preview_data_url ? `<img src="${f.preview_data_url}" alt="frame">` : '<div style="height:95px;border-radius:8px;background:#000"></div>';
+      d.innerHTML = `${img}<small>#${f.index ?? '?'} • t=${(f.time_sec ?? 0).toFixed ? f.time_sec.toFixed(2) : f.time_sec}s<br>netteté ${Math.round(f.sharpness||0)} • confiance ${Math.round((f.confidence||0)*100)}%</small>`;
+      els.framesGrid.appendChild(d);
+    }
+  }
+  function statLine(stats){
+    if (!stats) return '<span class="muted">—</span>';
+    const o = {Vie:stats.health, Endu:stats.stamina, Poids:stats.weight, Oxy:stats.oxygen, Nour:stats.food, Att:stats.melee};
+    return `<span class="mono">${Object.entries(o).map(([k,v]) => `${k}:${v ?? '-'}`).join(' · ')}</span>`;
+  }
+  function renderResult(res){
+    const rb = els.resultBox; rb.innerHTML = '';
+
+    if (res.warning){
+      els.backendNotice.classList.remove('hidden');
+      els.backendNotice.textContent = res.warning;
+    } else {
+      els.backendNotice.classList.add('hidden');
+      els.backendNotice.textContent = '';
+    }
+
+    const summary = document.createElement('div'); summary.className='item';
+    summary.innerHTML = `
+      <h4>Résumé</h4>
+      <div class="list" style="gap:6px">
+        <div><span class="badge">Espèce</span> ${res.species || '<span class="muted">inconnue</span>'}</div>
+        <div><span class="badge">Dinos</span> ${res.detected_count ?? 0}</div>
+        <div><span class="badge">Stats max du pool</span> ${statLine(res.target_best)}</div>
+      </div>`;
+    rb.appendChild(summary);
+
+    if (res.recommendations?.best_pair_now){
+      const p = res.recommendations.best_pair_now;
+      const best = document.createElement('div'); best.className='item';
+      best.innerHTML = `
+        <h4>✅ Meilleur couple à lancer maintenant</h4>
+        <div><strong>${p.male_label || p.male || 'Mâle'}</strong> × <strong>${p.female_label || p.female || 'Femelle'}</strong></div>
+        <div class="muted">Couverture : ${p.coverage || `${p.covered_top_stats||0}/6`} • ${p.reason || ''}</div>
+      `;
+      rb.appendChild(best);
+    }
+
+    if (Array.isArray(res.recommendations?.mirror_pairs) && res.recommendations.mirror_pairs.length){
+      const mir = document.createElement('div'); mir.className='item';
+      mir.innerHTML = `<h4>🪞 Paires miroir détectées</h4><ul style="margin:6px 0 0 18px">${res.recommendations.mirror_pairs.map(x=>`<li>${x.male_label || x.male} = ${x.female_label || x.female}</li>`).join('')}</ul>`;
+      rb.appendChild(mir);
+    }
+
+    if (Array.isArray(res.specimens) && res.specimens.length){
+      const list = document.createElement('div'); list.className='item';
+      list.innerHTML = `<h4>📋 Dinos détectés</h4>
+      <div style="overflow:auto"><table>
+        <thead><tr><th>#</th><th>Sexe</th><th>Nom</th><th>Niveau</th><th>Stage</th><th>Stats</th><th>Confiance</th></tr></thead>
+        <tbody>
+          ${res.specimens.map((s,i)=>`<tr>
+            <td>${i+1}</td>
+            <td>${s.sex || '-'}</td>
+            <td>${s.species || res.species || '-'}</td>
+            <td>${s.level ?? '-'}</td>
+            <td>${s.stage || '-'}</td>
+            <td>${statLine(s.wild)}</td>
+            <td>${Math.round((s.confidence||0)*100)}%</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`;
+      rb.appendChild(list);
+    }
+  }
+
+  function wireDrop(){
+    const dz = els.drop;
+    dz.addEventListener('click', ()=> els.fileInput.click());
+    ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+    ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+    dz.addEventListener('drop', e => {
+      const f = [...(e.dataTransfer?.files||[])].find(x => (x.type||'').startsWith('video/'));
+      if (f) setSelectedFile(f);
+    });
+    els.fileInput.addEventListener('change', e => {
+      const f = [...(e.target.files||[])][0]; if (f) setSelectedFile(f); e.target.value='';
+    });
+  }
+
+  async function analyze(){
+    const base = apiBase();
+    if (!base){ setStatus('Backend introuvable.'); return; }
+    if (!selectedFile){ setStatus('Choisis un MP4.'); return; }
+    localStorage.setItem(lsKey, base);
+    setProgress(3);
+    setStatus('Upload vidéo en cours...');
+    els.analyzeBtn.disabled = true;
+    clearResult();
+    try{
+      const fd = new FormData();
+      fd.append('file', selectedFile);
+      fd.append('min_confidence_percent', String(Math.max(0, Math.min(100, Number(els.minConfidence.value)||72))));
+      fd.append('frame_step_sec', String(Number(els.frameStep.value)||0.5));
+      fd.append('max_frames', String(Math.round(Number(els.maxFrames.value)||120)));
+      setProgress(15);
+      const res = await fetch(base + '/analyze-repro-video', { method:'POST', body: fd });
+      setProgress(75);
+      const data = await res.json();
+      if (!res.ok || data.ok === false){
+        throw new Error(data.detail || data.error || 'Analyse échouée');
+      }
+      setProgress(100);
+      setStatus(`Analyse terminée. ${data.detected_count ?? 0} dino(s) détecté(s).`);
+      renderKpis({
+        'Dinos détectés': data.detected_count ?? 0,
+        'Frames retenues': data.meta?.frames_kept ?? data.frames?.length ?? 0,
+        'Espèce': data.species || '—',
+        'Mode': data.meta?.analyzer_mode || '—'
+      });
+      renderFrames(data.frames || []);
+      renderResult(data);
+    }catch(err){
+      setProgress(0);
+      setStatus('Erreur : ' + (err?.message || err));
+      els.resultBox.innerHTML = `<div class="item"><h4>Erreur</h4><div class="bad">${(err?.message || err)}</div></div>`;
+    }finally{
+      els.analyzeBtn.disabled = false;
+    }
+  }
+
+  els.analyzeBtn.addEventListener('click', analyze);
+  els.resetBtn.addEventListener('click', () => { setSelectedFile(null); clearResult(); setProgress(0); setStatus('Réinitialisé.'); });
+  els.apiBase.addEventListener('change', pingHealth);
+  wireDrop();
+  pingHealth();
+})();
+</script>
+</body>
+</html>

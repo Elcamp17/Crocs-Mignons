@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Repro ARK ASA - Multi espèces</title>
+<style>
+  :root{
+    --bg:#050b1d;
+    --panel:#0e1836;
+    --panel2:#0a1330;
+    --line:#25356f;
+    --line2:#1f2d60;
+    --txt:#ecf2ff;
+    --muted:#9eb0dd;
+    --ok:#33d17a;
+    --warn:#ffbf47;
+    --bad:#ff6b6b;
+    --accent:#8c5bff;
+    --accent2:#5fd0ff;
+    --chip:#16244d;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(900px 500px at 10% -10%, #182a63 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, #0d3f6f 0%, transparent 50%),
+      var(--bg);
+    color:var(--txt);
+  }
+  .wrap{max-width:1500px;margin:0 auto;padding:14px 14px 20px;}
+  .topbar{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:10px}
+  h1{font-size:28px;margin:0;font-weight:900;letter-spacing:.2px}
+  .subtitle{color:var(--muted);font-size:13px}
+  .btn{
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,#1a2550,#121d42);
+    color:#fff;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.primary{background:linear-gradient(90deg,#8d35ff,#5a2fe0);border-color:#7241ff}
+  .btn.secondary{background:linear-gradient(180deg,#3a4a66,#2d3952);border-color:#455777}
+  .btn.good{background:linear-gradient(180deg,#1a6b48,#13593b);border-color:#2d9a69}
+  .btn.warn{background:linear-gradient(180deg,#7a4f12,#66400f);border-color:#b88121}
+  .btn.danger{background:linear-gradient(180deg,#7b1f2c,#651823);border-color:#b63e52}
+  .btn.ghost{background:#101a39}
+  .btn.small{padding:6px 9px;border-radius:10px;font-size:12px;font-weight:800}
+  .btn.xs{padding:4px 7px;border-radius:9px;font-size:11px;font-weight:800}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+
+  .layout{
+    display:grid;
+    grid-template-columns: 1.05fr 1.45fr;
+    gap:14px;
+    align-items:start;
+  }
+  @media (max-width:1200px){
+    .layout{grid-template-columns:1fr}
+  }
+
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  .leftCard{padding:14px}
+  .rightCard{padding:14px}
+  .sectionTitle{font-size:14px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  .hint{color:var(--muted);font-size:12px}
+
+  .backendBox{
+    border:1px solid var(--line2);
+    border-radius:14px;
+    padding:10px;
+    margin-bottom:10px;
+    background:rgba(12,21,53,.65);
+  }
+  .backendRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+  .label{font-size:12px;color:#b7c5eb;margin-bottom:4px;font-weight:700}
+  .input{
+    width:100%;
+    background:#091330;
+    color:#fff;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    outline:none;
+    font-size:13px;
+  }
+  .input:focus{border-color:#6f7cff;box-shadow:0 0 0 3px rgba(111,124,255,.15)}
+  .presetBox{
+    margin-top:10px;
+    border:1px dashed #4157a7;
+    border-radius:14px;
+    padding:10px;
+    background:rgba(20,28,65,.6);
+  }
+  .presetTitle{font-size:12px;font-weight:800;color:#dbe5ff;margin-bottom:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--chip);color:#d8e2ff;
+    border:1px solid var(--line2);border-radius:999px;
+    padding:6px 10px;font-size:12px;font-weight:700;
+  }
+  .chip strong{color:#fff}
+  .chip.ok{border-color:#2b8f62;background:#0f2c25}
+  .chip.warn{border-color:#8b6a25;background:#2a220f}
+  .chip.accent{border-color:#5d6dcd;background:#101f4d}
+  .chip.clickable{cursor:pointer}
+  .chip.active{outline:2px solid rgba(140,91,255,.65); outline-offset:1px; background:#1b2558}
+
+  .dropzone{
+    margin-top:12px;
+    border:2px dashed #5066a8;
+    border-radius:18px;
+    padding:20px;
+    min-height:118px;
+    display:grid;
+    place-items:center;
+    text-align:center;
+    background:rgba(33,37,85,.55);
+    cursor:pointer;
+    transition:.15s ease;
+  }
+  .dropzone:hover{border-color:#738ef0;background:rgba(40,48,102,.6)}
+  .dropzone.drag{border-color:#8c5bff;background:rgba(66,43,129,.25)}
+  .dropMain{font-size:20px;font-weight:900;margin-top:5px}
+  .dropSub{color:#b7c6ed;margin-top:4px}
+  .dropIcon{font-size:34px;opacity:.9}
+
+  .actionRow{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .fileMeta{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px}
+  .fileTag{
+    background:#0a122e;border:1px solid var(--line2);border-radius:999px;
+    padding:5px 10px;font-size:12px;color:#dbe6ff
+  }
+
+  .progressWrap{margin-top:12px}
+  .progressBar{
+    height:6px;background:#111b3f;border-radius:999px;overflow:hidden;border:1px solid #2a3d83;
+  }
+  .progressFill{
+    width:0%;height:100%;
+    background:linear-gradient(90deg,#8d4dff,#c07bff,#69d3ff);
+    transition:width .2s ease;
+  }
+  .statusText{font-size:12px;color:#c5d3f8;margin-top:6px;min-height:16px}
+  .statusText.error{color:#ff9fa6}
+  .statusText.ok{color:#94edbc}
+  .warningBox{
+    margin-top:10px;padding:10px;border-radius:12px;
+    border:1px solid #7b5c23;background:rgba(123,92,35,.14);color:#ffd98a;
+    font-size:12px;
+  }
+
+  .miniStats{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px;
+  }
+  @media (max-width:800px){.miniStats{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  .miniCard{
+    border:1px solid var(--line2);border-radius:14px;padding:10px;background:#0b1533;
+  }
+  .miniCard .v{font-size:18px;font-weight:900}
+  .miniCard .k{font-size:12px;color:#aebfe7}
+
+  .rightHeader{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px
+  }
+  .rightHeader h2{margin:0;font-size:18px;font-weight:900}
+  .rightActions{display:flex;flex-wrap:wrap;gap:8px}
+
+  .summaryGrid{
+    display:grid;grid-template-columns:1.1fr .9fr;gap:10px;margin-bottom:10px;
+  }
+  @media (max-width:1000px){.summaryGrid{grid-template-columns:1fr}}
+  .subCard{border:1px solid var(--line2);border-radius:14px;padding:10px;background:#091430}
+  .subCard h3{margin:0 0 8px;font-size:13px;font-weight:900}
+  .listClean{margin:0;padding-left:18px}
+  .listClean li{margin:4px 0}
+  .speciesRow{
+    display:flex;flex-wrap:wrap;gap:8px;align-items:center
+  }
+  .speciesChip{
+    display:inline-flex;align-items:center;gap:7px;
+    border-radius:999px;border:1px solid var(--line2);
+    background:#0d1738;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer;
+  }
+  .speciesChip small{color:#b3c4ee;font-weight:700}
+  .speciesChip.active{border-color:#7b67ff;background:#181f58;box-shadow:0 0 0 2px rgba(123,103,255,.2)}
+  .speciesChip.all{border-style:dashed}
+  .badge{
+    display:inline-flex;align-items:center;
+    border-radius:999px;padding:3px 8px;font-size:11px;font-weight:900;
+    border:1px solid var(--line2);background:#101f4c;color:#fff
+  }
+  .badge.good{background:#123525;border-color:#287d57;color:#aff5cf}
+  .badge.warn{background:#352a10;border-color:#856625;color:#ffe39d}
+  .badge.bad{background:#361720;border-color:#9a3449;color:#ffbcc7}
+  .badge.neutral{background:#101b40;color:#d9e3ff}
+  .kv{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:#d2dcff}
+  .kv .chip{padding:4px 8px}
+
+  .speciesPanels{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:10px;
+  }
+  .speciesPanel{
+    border:1px solid var(--line2);border-radius:14px;padding:10px;background:#0a1533;
+  }
+  .speciesPanel h4{margin:0 0 8px;font-size:13px}
+  .speciesPanel .line{font-size:12px;color:#d3defe;margin:4px 0}
+  .speciesPanel .line.muted{color:#9fb1de}
+  .speciesPanel .line strong{color:#fff}
+
+  .tableWrap{
+    border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#08122b;
+  }
+  table{width:100%;border-collapse:collapse}
+  thead th{
+    position:sticky;top:0;z-index:2;background:#101b40;border-bottom:1px solid var(--line2);
+    font-size:12px;text-align:left;padding:9px 8px;color:#d9e4ff;white-space:nowrap
+  }
+  tbody td{
+    border-top:1px solid rgba(47,67,132,.45);
+    padding:8px;vertical-align:top;font-size:13px;
+  }
+  tbody tr:hover{background:rgba(31,44,90,.25)}
+  tbody tr.excluded{opacity:.55}
+  tbody tr.excluded td{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.22)}
+  td.num{width:34px;text-align:right;color:#b7c7ef}
+  td.center{text-align:center}
+  td.actions{white-space:nowrap}
+  .sexPill{
+    display:inline-flex;min-width:22px;justify-content:center;
+    border-radius:999px;padding:2px 7px;font-weight:900;font-size:11px;border:1px solid var(--line2)
+  }
+  .sexPill.m{background:#122f66;color:#a7d0ff;border-color:#2f63b3}
+  .sexPill.f{background:#4a1335;color:#ffc0df;border-color:#9e3b74}
+  .sexPill.u{background:#1d274e;color:#d4deff}
+  .nameCell{font-weight:800}
+  .nameSub{display:block;color:#9cb0df;font-size:11px;margin-top:2px}
+  .statsCell{min-width:245px}
+  .statsList{display:flex;flex-wrap:wrap;gap:6px}
+  .statTag{
+    background:#121f49;border:1px solid #2a3b7f;border-radius:9px;padding:3px 6px;
+    font-size:11px;font-weight:800;color:#e8f0ff
+  }
+  .statTag.missing{opacity:.45}
+  .confCell{font-weight:900}
+  .confCell.good{color:#9ef2c4}
+  .confCell.mid{color:#ffd98e}
+  .confCell.low{color:#ffacb8}
+  .libStatus{display:flex;flex-direction:column;gap:4px}
+  .actionsCol{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+
+  .editorOverlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.56);display:none;place-items:center;z-index:9999;padding:14px;
+  }
+  .editorOverlay.show{display:grid}
+  .editorCard{
+    width:min(760px,96vw);max-height:92vh;overflow:auto;
+    background:#0b1533;border:1px solid var(--line);border-radius:18px;padding:14px;
+    box-shadow:0 22px 70px rgba(0,0,0,.45);
+  }
+  .editorGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  @media (max-width:700px){.editorGrid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  .editorGrid .full{grid-column:1/-1}
+  .editorActions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+  details.framesBox{
+    margin-top:10px;border:1px solid var(--line2);border-radius:14px;padding:8px 10px;background:#091430;
+  }
+  details.framesBox summary{cursor:pointer;font-weight:800}
+  .framesGrid{
+    margin-top:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;
+  }
+  .frameCard{border:1px solid var(--line2);border-radius:12px;padding:6px;background:#0a1330}
+  .frameCard img{width:100%;height:72px;object-fit:cover;border-radius:8px;border:1px solid #23366d;background:#081125}
+  .frameMeta{font-size:10px;color:#b3c4ec;margin-top:4px;line-height:1.25}
+
+  .empty{
+    border:1px dashed #3a4f95;border-radius:14px;padding:18px;text-align:center;color:#b2c2e9;background:#091430;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1>🧬 Repro ARK ASA <span style="opacity:.9">(MP4 → analyse backend)</span></h1>
+      <div class="subtitle">Version améliorée : scan multi-espèces, corrections locales, bibliothèque best-of par espèce, réglages qualité imposés.</div>
+    </div>
+    <button class="btn ghost" id="btnBack">⬅ Retour checklist</button>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <section class="card leftCard">
+      <div class="backendBox">
+        <div class="sectionTitle">🌐 Backend</div>
+        <div class="backendRow">
+          <div>
+            <div class="label">URL API backend</div>
+            <input id="apiUrl" class="input" type="text" value="https://ark-repro-backend.onrender.com" />
+          </div>
+          <button class="btn small ghost" id="btnHealth">Tester /health</button>
+        </div>
+        <div class="presetBox">
+          <div class="presetTitle">Réglages qualité imposés (non modifiables)</div>
+          <div class="chips">
+            <span class="chip accent">🎯 Confiance mini <strong id="presetConfChip">85%</strong></span>
+            <span class="chip accent">🎞️ Intervalle <strong id="presetStepChip">0.3s</strong></span>
+            <span class="chip accent">🧱 Frames max <strong id="presetFramesChip">120</strong></span>
+            <span class="chip ok">🧠 Recalcul repro local multi-espèces</span>
+            <span class="chip warn">📚 Bibliothèque best-of locale (navigateur)</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="dropzone" class="dropzone">
+        <div>
+          <div class="dropIcon">🎞️</div>
+          <div class="dropMain">Dépose un MP4 ici</div>
+          <div class="dropSub">ou clique pour choisir un fichier vidéo (.mp4)</div>
+          <input type="file" id="fileInput" accept=".mp4,video/mp4" hidden />
+        </div>
+      </div>
+
+      <div class="actionRow">
+        <button class="btn primary" id="btnAnalyze">🚀 Analyser la vidéo</button>
+        <button class="btn secondary" id="btnReset">♻️ Réinitialiser</button>
+        <button class="btn good" id="btnReAnalyze" disabled>🔁 Refaire scan</button>
+      </div>
+
+      <div class="fileMeta" id="fileMeta"></div>
+
+      <div class="progressWrap">
+        <div class="progressBar"><div id="progressFill" class="progressFill"></div></div>
+        <div id="statusText" class="statusText">Prêt.</div>
+        <div id="warningBox" class="warningBox" style="display:none"></div>
+      </div>
+
+      <div class="miniStats" id="miniStats">
+        <div class="miniCard"><div class="v" id="statDinos">0</div><div class="k">Dinos détectés</div></div>
+        <div class="miniCard"><div class="v" id="statFrames">0</div><div class="k">Frames retenues</div></div>
+        <div class="miniCard"><div class="v" id="statSpecies">0</div><div class="k">Espèces détectées</div></div>
+        <div class="miniCard"><div class="v" id="statMode">—</div><div class="k">Mode backend</div></div>
+      </div>
+
+      <details class="framesBox" id="framesBox" open>
+        <summary>Frames candidates extraites (<span id="framesCount">0</span>)</summary>
+        <div class="framesGrid" id="framesGrid"></div>
+      </details>
+    </section>
+
+    <!-- RIGHT -->
+    <section class="card rightCard">
+      <div class="rightHeader">
+        <h2>Résultat repro</h2>
+        <div class="rightActions">
+          <button class="btn small good" id="btnSaveLib" disabled>📚 Sauver best-of du scan</button>
+          <button class="btn small ghost" id="btnCompareLib" disabled>🧪 Comparer biblio</button>
+          <button class="btn small danger" id="btnClearLibSpecies" disabled>🗑️ Effacer biblio (espèce vue)</button>
+        </div>
+      </div>
+
+      <div id="resultArea">
+        <div class="empty">Aucune analyse pour le moment.</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="editorOverlay" class="editorOverlay" aria-hidden="true">
+  <div class="editorCard">
+    <div class="sectionTitle">✏️ Corriger un dino détecté</div>
+    <div class="hint">Tu peux corriger le nom, sexe, niveau, stage et stats. Le recalcul repro se met à jour immédiatement.</div>
+    <div class="editorGrid" id="editorGrid">
+      <div><div class="label">Sexe</div><select id="edSex" class="input"><option value="">?</option><option value="m">m</option><option value="f">f</option></select></div>
+      <div><div class="label">Espèce</div><input id="edSpecies" class="input" type="text" /></div>
+      <div><div class="label">Niveau</div><input id="edLevel" class="input" type="number" min="0" step="1" /></div>
+      <div><div class="label">Stage</div><input id="edStage" class="input" type="text" placeholder="baby/adult/-" /></div>
+      <div><div class="label">Vie</div><input id="edHealth" class="input" type="number" min="0" step="1" /></div>
+      <div><div class="label">Endu</div><input id="edStamina" class="input" type="number" min="0" step="1" /></div>
+      <div><div class="label">Poids</div><input id="edWeight" class="input" type="number" min="0" step="1" /></div>
+      <div><div class="label">Oxy</div><input id="edOxygen" class="input" type="number" min="0" step="1" /></div>
+      <div><div class="label">Nour</div><input id="edFood" class="input" type="number" min="0" step="1" /></div>
+      <div><div class="label">Att</div><input id="edMelee" class="input" type="number" min="0" step="1" /></div>
+      <div><div class="label">Confiance (%)</div><input id="edConfidence" class="input" type="number" min="0" max="100" step="1" /></div>
+      <div><div class="label">Source</div><input id="edSource" class="input" type="text" disabled /></div>
+      <div class="full"><div class="label">Note</div><input id="edNote" class="input" type="text" placeholder="ex: OCR faux sur Att, corrigé manuellement" /></div>
+    </div>
+    <div class="editorActions">
+      <button class="btn secondary" id="btnEditCancel">Annuler</button>
+      <button class="btn good" id="btnEditSave">✅ Enregistrer la correction</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const PRESET = Object.freeze({
+    provider: "openai",
+    minConfidencePct: 85,
+    frameStepSec: 0.3,
+    maxFrames: 120
+  });
+
+  const STORAGE_KEYS = {
+    backendUrl: "ark_repro_backend_url_v3",
+    library: "ark_repro_library_v3",
+    selectedSpecies: "ark_repro_selected_species_v3"
+  };
+
+  const STAT_KEYS = ["health","stamina","weight","oxygen","food","melee"];
+  const STAT_LABELS = {health:"Vie", stamina:"Endu", weight:"Poids", oxygen:"Oxy", food:"Nour", melee:"Att"};
+
+  const state = {
+    file: null,
+    raw: null,
+    specimens: [],
+    frames: [],
+    meta: {},
+    selectedSpecies: "__ALL__",
+    filterText: "",
+    editorIndex: -1,
+    busy: false,
+    library: loadLibrary()
+  };
+
+  const els = {
+    btnBack: byId("btnBack"),
+    apiUrl: byId("apiUrl"),
+    btnHealth: byId("btnHealth"),
+    presetConfChip: byId("presetConfChip"),
+    presetStepChip: byId("presetStepChip"),
+    presetFramesChip: byId("presetFramesChip"),
+    dropzone: byId("dropzone"),
+    fileInput: byId("fileInput"),
+    btnAnalyze: byId("btnAnalyze"),
+    btnReset: byId("btnReset"),
+    btnReAnalyze: byId("btnReAnalyze"),
+    fileMeta: byId("fileMeta"),
+    progressFill: byId("progressFill"),
+    statusText: byId("statusText"),
+    warningBox: byId("warningBox"),
+    statDinos: byId("statDinos"),
+    statFrames: byId("statFrames"),
+    statSpecies: byId("statSpecies"),
+    statMode: byId("statMode"),
+    framesBox: byId("framesBox"),
+    framesGrid: byId("framesGrid"),
+    framesCount: byId("framesCount"),
+    btnSaveLib: byId("btnSaveLib"),
+    btnCompareLib: byId("btnCompareLib"),
+    btnClearLibSpecies: byId("btnClearLibSpecies"),
+    resultArea: byId("resultArea"),
+    editorOverlay: byId("editorOverlay"),
+    edSex: byId("edSex"),
+    edSpecies: byId("edSpecies"),
+    edLevel: byId("edLevel"),
+    edStage: byId("edStage"),
+    edHealth: byId("edHealth"),
+    edStamina: byId("edStamina"),
+    edWeight: byId("edWeight"),
+    edOxygen: byId("edOxygen"),
+    edFood: byId("edFood"),
+    edMelee: byId("edMelee"),
+    edConfidence: byId("edConfidence"),
+    edSource: byId("edSource"),
+    edNote: byId("edNote"),
+    btnEditCancel: byId("btnEditCancel"),
+    btnEditSave: byId("btnEditSave")
+  };
+
+  init();
+
+  function init(){
+    els.presetConfChip.textContent = PRESET.minConfidencePct + "%";
+    els.presetStepChip.textContent = PRESET.frameStepSec + "s";
+    els.presetFramesChip.textContent = String(PRESET.maxFrames);
+
+    try{
+      const savedUrl = localStorage.getItem(STORAGE_KEYS.backendUrl);
+      if(savedUrl) els.apiUrl.value = savedUrl;
+      const savedSpecies = localStorage.getItem(STORAGE_KEYS.selectedSpecies);
+      if(savedSpecies) state.selectedSpecies = savedSpecies;
+    }catch(_){}
+
+    wireUi();
+    renderAll();
+  }
+
+  function wireUi(){
+    els.btnBack.addEventListener("click", () => {
+      try { history.back(); } catch(_) {}
+    });
+
+    els.apiUrl.addEventListener("change", () => {
+      try { localStorage.setItem(STORAGE_KEYS.backendUrl, els.apiUrl.value.trim()); } catch(_) {}
+    });
+
+    els.btnHealth.addEventListener("click", async () => {
+      const base = getBackendBase();
+      if(!base) return setStatus("URL backend invalide.", "error");
+      setStatus("Test /health…");
+      try{
+        const res = await fetch(base + "/health", { method:"GET" });
+        const txt = await res.text();
+        setStatus(res.ok ? ("✅ /health OK " + txt) : ("❌ /health " + res.status), res.ok ? "ok" : "error");
+      }catch(err){
+        setStatus("❌ Backend inaccessible: " + (err?.message || err), "error");
+      }
+    });
+
+    els.dropzone.addEventListener("click", () => els.fileInput.click());
+    els.fileInput.addEventListener("change", (e) => {
+      const f = e.target.files?.[0];
+      if(f) setSelectedFile(f);
+    });
+
+    ["dragenter","dragover"].forEach(ev => {
+      els.dropzone.addEventListener(ev, (e)=>{ e.preventDefault(); els.dropzone.classList.add("drag"); });
+    });
+    ["dragleave","drop"].forEach(ev => {
+      els.dropzone.addEventListener(ev, (e)=>{ e.preventDefault(); els.dropzone.classList.remove("drag"); });
+    });
+    els.dropzone.addEventListener("drop", (e) => {
+      const f = [...(e.dataTransfer?.files || [])].find(x => /mp4|video/i.test(x.type) || /\.mp4$/i.test(x.name));
+      if(f) setSelectedFile(f);
+    });
+
+    els.btnAnalyze.addEventListener("click", () => analyze(false));
+    els.btnReAnalyze.addEventListener("click", () => analyze(true));
+    els.btnReset.addEventListener("click", resetPage);
+
+    els.btnSaveLib.addEventListener("click", saveScanToLibrary);
+    els.btnCompareLib.addEventListener("click", () => renderAll());
+    els.btnClearLibSpecies.addEventListener("click", clearSelectedSpeciesLibrary);
+
+    els.resultArea.addEventListener("click", onResultClick);
+
+    els.btnEditCancel.addEventListener("click", closeEditor);
+    els.btnEditSave.addEventListener("click", saveEditor);
+    els.editorOverlay.addEventListener("click", (e)=>{ if(e.target===els.editorOverlay) closeEditor(); });
+
+    window.addEventListener("keydown", (e) => {
+      if(e.key === "Escape" && els.editorOverlay.classList.contains("show")) closeEditor();
+    });
+  }
+
+  function byId(id){ return document.getElementById(id); }
+  function escapeHtml(v){
+    return String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+
+  function getBackendBase(){
+    let v = (els.apiUrl.value || "").trim();
+    if(!v) return "";
+    v = v.replace(/\/+$/,"");
+    return v;
+  }
+
+  function setProgress(pct){
+    const clamped = Math.max(0, Math.min(100, Number(pct)||0));
+    els.progressFill.style.width = clamped + "%";
+  }
+
+  function setStatus(msg, kind){
+    els.statusText.textContent = msg || "";
+    els.statusText.className = "statusText" + (kind ? " " + kind : "");
+  }
+
+  function showWarning(msg){
+    if(msg){
+      els.warningBox.style.display = "";
+      els.warningBox.textContent = msg;
+    } else {
+      els.warningBox.style.display = "none";
+      els.warningBox.textContent = "";
+    }
+  }
+
+  function setBusy(b){
+    state.busy = !!b;
+    els.btnAnalyze.disabled = b || !state.file;
+    els.btnReAnalyze.disabled = b || !state.file || !state.specimens.length;
+    els.btnReset.disabled = b;
+    els.btnSaveLib.disabled = b || !activeSpecimens().length;
+    els.btnCompareLib.disabled = !activeSpecimens().length;
+    els.btnClearLibSpecies.disabled = b || !hasAnyVisibleSpeciesSelected();
+  }
+
+  function setSelectedFile(file){
+    state.file = file;
+    renderFileMeta();
+    setStatus("Fichier chargé. Prêt à analyser.");
+    els.btnAnalyze.disabled = false;
+    els.btnReAnalyze.disabled = !state.specimens.length;
+  }
+
+  function renderFileMeta(){
+    const tags = [];
+    if(state.file){
+      tags.push(`<span class="fileTag">📦 ${escapeHtml(state.file.name)}</span>`);
+      tags.push(`<span class="fileTag">📏 ${formatBytes(state.file.size || 0)}</span>`);
+      tags.push(`<span class="fileTag">🤖 Backend: ${escapeHtml(PRESET.provider)}</span>`);
+    } else {
+      tags.push(`<span class="fileTag">Aucun fichier sélectionné</span>`);
+    }
+    els.fileMeta.innerHTML = tags.join("");
+  }
+
+  function formatBytes(n){
+    const num = Number(n)||0;
+    const units = ["o","Ko","Mo","Go"];
+    let v = num, i = 0;
+    while(v >= 1024 && i < units.length-1){ v/=1024; i++; }
+    return (i===0 ? String(Math.round(v)) : v.toFixed(v>=10?1:2)) + " " + units[i];
+  }
+
+  function normSex(v){
+    const s = String(v ?? "").trim().toLowerCase();
+    if(["m","male","♂"].includes(s)) return "m";
+    if(["f","female","♀"].includes(s)) return "f";
+    return "";
+  }
+
+  function cleanInt(v){
+    if(v === null || v === undefined || v === "") return null;
+    const m = String(v).replace(",", ".").match(/-?\d+(\.\d+)?/);
+    if(!m) return null;
+    const n = Math.round(Number(m[0]));
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function cleanPct(v){
+    const n = cleanInt(v);
+    if(n === null) return null;
+    return Math.max(0, Math.min(100, n));
+  }
+
+  function normalizeSpeciesName(v){
+    return String(v ?? "")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .trim().toLowerCase().replace(/\s+/g," ");
+  }
+
+  function prettySpeciesName(v){
+    const raw = String(v ?? "").trim();
+    if(!raw) return "Inconnue";
+    return raw
+      .split(/\s+/)
+      .map(x => x ? x.charAt(0).toUpperCase() + x.slice(1).toLowerCase() : x)
+      .join(" ");
+  }
+
+  function parseStats(obj){
+    const src = obj?.stats || obj || {};
+    return {
+      health: cleanInt(src.health ?? src.hp ?? src.vie),
+      stamina: cleanInt(src.stamina ?? src.endurance ?? src.endu),
+      weight: cleanInt(src.weight ?? src.poids),
+      oxygen: cleanInt(src.oxygen ?? src.oxy),
+      food: cleanInt(src.food ?? src.nour),
+      melee: cleanInt(src.melee ?? src.attack ?? src.att ?? src.atk)
+    };
+  }
+
+  function normalizeSpecimen(item, idx){
+    const stats = parseStats(item);
+    const speciesRaw = item?.species ?? item?.name ?? item?.dino ?? item?.espèce ?? item?.espece ?? "";
+    const species = prettySpeciesName(speciesRaw);
+    const speciesNorm = normalizeSpeciesName(speciesRaw || species);
+
+    let conf = item?.confidence_pct ?? item?.confidencePercent ?? item?.confidence;
+    if(typeof conf === "number" && conf <= 1) conf = Math.round(conf * 100);
+    conf = cleanPct(conf);
+
+    return {
+      _id: cryptoRandomId() + "_" + idx,
+      source: item?._manual ? "manuel" : "scan",
+      note: item?.note || "",
+      excluded: !!item?.excluded,
+      sex: normSex(item?.sex),
+      species,
+      speciesNorm,
+      level: cleanInt(item?.level),
+      stage: String(item?.stage ?? "-").trim() || "-",
+      confidence_pct: conf,
+      stats
+    };
+  }
+
+  function cryptoRandomId(){
+    try {
+      const a = new Uint32Array(1);
+      crypto.getRandomValues(a);
+      return a[0].toString(36);
+    } catch(_) {
+      return Math.random().toString(36).slice(2,10);
+    }
+  }
+
+  function normalizeResponse(res){
+    const out = res || {};
+    const list = Array.isArray(out.specimens) ? out.specimens : [];
+    state.raw = out;
+    state.frames = Array.isArray(out.frames) ? out.frames : [];
+    state.meta = out.meta || {};
+    state.specimens = list.map(normalizeSpecimen);
+    // If backend returns 1 species but specimens have multiple, frontend will handle locally.
+    reconcileSelectedSpecies();
+  }
+
+  function activeSpecimens(){
+    return state.specimens.filter(s => !s.excluded);
+  }
+
+  function visibleSpecimens(){
+    const all = activeSpecimens();
+    if(state.selectedSpecies === "__ALL__") return all;
+    return all.filter(s => s.speciesNorm === state.selectedSpecies);
+  }
+
+  function hasAnyVisibleSpeciesSelected(){
+    const groups = groupBySpecies(activeSpecimens());
+    if(Object.keys(groups).length === 0) return false;
+    if(state.selectedSpecies === "__ALL__") return Object.keys(groups).length > 0;
+    return !!groups[state.selectedSpecies];
+  }
+
+  function groupBySpecies(list){
+    const groups = {};
+    for(const s of list){
+      const key = s.speciesNorm || "__unknown__";
+      if(!groups[key]){
+        groups[key] = { key, label: prettySpeciesName(s.species || "Inconnue"), items: [] };
+      }
+      groups[key].items.push(s);
+      if(!groups[key].label || groups[key].label === "Inconnue"){
+        groups[key].label = prettySpeciesName(s.species || "Inconnue");
+      }
+    }
+    return groups;
+  }
+
+  function speciesOrderFromGroups(groups){
+    return Object.values(groups).sort((a,b)=>{
+      if(b.items.length !== a.items.length) return b.items.length - a.items.length;
+      return a.label.localeCompare(b.label, "fr");
+    }).map(g=>g.key);
+  }
+
+  function poolMax(list){
+    const pool = {};
+    for(const k of STAT_KEYS){
+      let m = null;
+      for(const s of list){
+        const v = s?.stats?.[k];
+        if(Number.isFinite(v)) m = m===null ? v : Math.max(m, v);
+      }
+      pool[k] = m;
+    }
+    return pool;
+  }
+
+  function formatPool(pool){
+    return STAT_KEYS.map(k => `${STAT_LABELS[k]}:${pool[k] ?? "-"}`).join(" · ");
+  }
+
+  function statSignature(spec){
+    return STAT_KEYS.map(k => (spec?.stats?.[k] ?? "-")).join("|");
+  }
+
+  function mirrorPairs(list){
+    const males = list.filter(x=>x.sex==="m");
+    const females = list.filter(x=>x.sex==="f");
+    const out = [];
+    for(const m of males){
+      for(const f of females){
+        if(statSignature(m) === statSignature(f)){
+          out.push({ m, f });
+        }
+      }
+    }
+    return out;
+  }
+
+  function coupleCoverage(a,b,pool){
+    let covered=0, total=0, details=[];
+    for(const k of STAT_KEYS){
+      const target = pool[k];
+      if(target === null || target === undefined) continue;
+      total++;
+      const av = a?.stats?.[k];
+      const bv = b?.stats?.[k];
+      const ok = av === target || bv === target;
+      if(ok) covered++;
+      details.push({key:k, ok, av, bv, target});
+    }
+    return { covered, total, details };
+  }
+
+  function chooseBestPairForSpecies(list){
+    if(list.length < 2) return null;
+    const pool = poolMax(list);
+
+    const males = list.filter(x=>x.sex==="m");
+    const females = list.filter(x=>x.sex==="f");
+    let pairs = [];
+    if(males.length && females.length){
+      for(const m of males) for(const f of females) pairs.push({m, f, sexMode:"mf"});
+    } else {
+      // fallback local analysis if sex missing in scan (use any two distinct)
+      for(let i=0;i<list.length;i++){
+        for(let j=i+1;j<list.length;j++){
+          pairs.push({m:list[i], f:list[j], sexMode:"any"});
+        }
+      }
+    }
+
+    let best = null;
+    for(const p of pairs){
+      const cov = coupleCoverage(p.m, p.f, pool);
+      const score =
+        (cov.covered * 1000) +
+        ((p.m.confidence_pct || 0) + (p.f.confidence_pct || 0)) +
+        ((p.m.level || 0) + (p.f.level || 0)) / 100;
+      if(!best || score > best.score){
+        best = { ...p, coverage: cov, score };
+      }
+    }
+    return best;
+  }
+
+  function compareSpecimenToLibrary(spec, libForSpecies){
+    if(!libForSpecies || !Array.isArray(libForSpecies.entries) || !libForSpecies.entries.length){
+      return { label:"—", tone:"neutral", adds:false, coverageText:"Biblio vide" };
+    }
+    const pool = poolMax(libForSpecies.entries);
+    let match = 0, total = 0, improve = 0;
+    for(const k of STAT_KEYS){
+      const sv = spec?.stats?.[k];
+      const pv = pool[k];
+      if(pv === null || pv === undefined || sv === null || sv === undefined) continue;
+      total++;
+      if(sv === pv) match++;
+      if(sv > pv) improve++;
+    }
+    if(improve > 0) return { label:`⭐ +${improve} stat max`, tone:"good", adds:true, coverageText:`Améliore la biblio` };
+    if(total && match) return { label:`OK ${match}/${total}`, tone:"good", adds:false, coverageText:`Atteint ${match} stat(s) max` };
+    if(total) return { label:`Faible ${match}/${total}`, tone:"warn", adds:false, coverageText:`Sous le best-of` };
+    return { label:"Données incomplètes", tone:"neutral", adds:false, coverageText:"Stats insuffisantes" };
+  }
+
+  function buildDerived(){
+    const allActive = activeSpecimens();
+    const groups = groupBySpecies(allActive);
+    const order = speciesOrderFromGroups(groups);
+
+    const perSpecies = {};
+    for(const key of order){
+      const g = groups[key];
+      const items = g.items;
+      const pool = poolMax(items);
+      const bestPair = chooseBestPairForSpecies(items);
+      const mirrors = mirrorPairs(items);
+      const lib = state.library[key] || null;
+      const libPool = lib && Array.isArray(lib.entries) && lib.entries.length ? poolMax(lib.entries) : null;
+
+      perSpecies[key] = {
+        key,
+        label: g.label,
+        count: items.length,
+        items,
+        pool,
+        bestPair,
+        mirrors,
+        library: lib,
+        libraryPool: libPool
+      };
+    }
+
+    return {
+      activeCount: allActive.length,
+      groupCount: order.length,
+      groups,
+      order,
+      perSpecies,
+      framesKept: Number(state.meta.frames_kept ?? 0) || 0,
+      analyzerMode: state.meta.analyzer_mode || state.meta.provider || PRESET.provider,
+      speciesMixed: order.length > 1
+    };
+  }
+
+  function reconcileSelectedSpecies(){
+    const groups = groupBySpecies(activeSpecimens());
+    const keys = Object.keys(groups);
+    if(!keys.length){
+      state.selectedSpecies = "__ALL__";
+      return;
+    }
+    if(state.selectedSpecies === "__ALL__") return;
+    if(!groups[state.selectedSpecies]){
+      state.selectedSpecies = "__ALL__";
+    }
+    try{ localStorage.setItem(STORAGE_KEYS.selectedSpecies, state.selectedSpecies); }catch(_){}
+  }
+
+  function renderAll(){
+    reconcileSelectedSpecies();
+    renderFileMeta();
+    const derived = buildDerived();
+    renderTopStats(derived);
+    renderFrames();
+    renderResult(derived);
+    setBusy(state.busy);
+  }
+
+  function renderTopStats(derived){
+    els.statDinos.textContent = String(derived.activeCount || 0);
+    els.statFrames.textContent = String(derived.framesKept || 0);
+    els.statSpecies.textContent = String(derived.groupCount || 0);
+    els.statMode.textContent = String(derived.analyzerMode || "—");
+  }
+
+  function renderFrames(){
+    const frames = Array.isArray(state.frames) ? state.frames : [];
+    els.framesCount.textContent = String(frames.length);
+    if(!frames.length){
+      els.framesGrid.innerHTML = '<div class="hint">Aucune frame affichable.</div>';
+      return;
+    }
+    els.framesGrid.innerHTML = frames.map(fr => {
+      const img = fr.preview_data_url ? `<img src="${fr.preview_data_url}" alt="frame ${escapeHtml(fr.index)}">` : `<div style="height:72px;border-radius:8px;border:1px solid #23366d;display:grid;place-items:center;color:#8198d1;background:#070f24">No preview</div>`;
+      const t = Number(fr.time_sec || 0);
+      return `<div class="frameCard">
+        ${img}
+        <div class="frameMeta">
+          #${escapeHtml(fr.index)} • ${formatTime(t)}<br>
+          conf:${fmt(fr.confidence)} • sharp:${fmt(fr.sharpness)}${fr.is_candidate===false?' • rejetée':''}
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  function fmt(v){
+    if(v===null || v===undefined || v==="") return "-";
+    const n = Number(v);
+    return Number.isFinite(n) ? n.toFixed(2) : String(v);
+  }
+  function formatTime(s){
+    const n = Number(s)||0;
+    const m = Math.floor(n/60);
+    const sec = (n%60).toFixed(1).padStart(4,"0");
+    return `${m}:${sec}`;
+  }
+
+  function renderResult(derived){
+    const allActive = activeSpecimens();
+    if(!allActive.length){
+      els.resultArea.innerHTML = '<div class="empty">Aucun dino détecté (ou tous exclus).</div>';
+      return;
+    }
+
+    const allGroups = derived.groups;
+    const order = derived.order;
+    const selectedKey = state.selectedSpecies;
+    const selectedGroup = selectedKey !== "__ALL__" ? allGroups[selectedKey] : null;
+    const selectedPer = selectedGroup ? derived.perSpecies[selectedKey] : null;
+
+    const globalPool = poolMax(allActive);
+    const visible = visibleSpecimens();
+
+    const speciesChips = [
+      `<button class="speciesChip all ${selectedKey==="__ALL__" ? "active" : ""}" data-action="select-species" data-key="__ALL__">Tous <small>${allActive.length}</small></button>`,
+      ...order.map(k => {
+        const g = derived.perSpecies[k];
+        const libCount = g.library?.entries?.length || 0;
+        return `<button class="speciesChip ${selectedKey===k ? "active" : ""}" data-action="select-species" data-key="${escapeHtml(k)}">
+          ${escapeHtml(g.label)} <small>${g.count}</small>${libCount ? `<span class="badge neutral" style="margin-left:3px">📚${libCount}</span>` : ``}
+        </button>`;
+      })
+    ].join("");
+
+    const globalSummaryHtml = `
+      <div class="subCard">
+        <h3>Résumé global du scan ${derived.speciesMixed ? '<span class="badge warn">multi-espèces</span>' : ''}</h3>
+        <div class="kv" style="margin-bottom:8px">
+          <span class="chip"><strong>Dinos actifs</strong> ${allActive.length}</span>
+          <span class="chip"><strong>Espèces</strong> ${order.length}</span>
+          <span class="chip"><strong>Frames retenues</strong> ${derived.framesKept || 0}</span>
+          <span class="chip"><strong>Stats max globales</strong> ${escapeHtml(formatPool(globalPool))}</span>
+        </div>
+        <div class="speciesRow">${speciesChips}</div>
+      </div>
+    `;
+
+    const focusSummaryHtml = selectedPer
+      ? renderSelectedSpeciesSummary(selectedPer)
+      : `
+        <div class="subCard">
+          <h3>Vue “Tous”</h3>
+          <div class="hint" style="margin-bottom:8px">Le récap ci-dessous est calculé espèce par espèce pour éviter les conneries quand plusieurs dinos sont mélangés dans une même vidéo.</div>
+          <div class="speciesPanels">
+            ${order.map(k => renderSpeciesPanel(derived.perSpecies[k])).join("")}
+          </div>
+        </div>
+      `;
+
+    const tableHeaderTitle = selectedPer ? `Dinos détectés — ${escapeHtml(selectedPer.label)}` : `Dinos détectés — toutes espèces`;
+    const tableHint = `Tu peux corriger, exclure, supprimer un dino. Le recalcul repro se met à jour localement. Utilise “Refaire scan” pour relire la vidéo complète.`;
+
+    const rowsHtml = visible.length ? visible.map((s, i) => renderSpecimenRow(s, i+1)).join("") : `<tr><td colspan="9"><div class="empty">Aucun dino visible dans ce filtre.</div></td></tr>`;
+
+    els.resultArea.innerHTML = `
+      <div class="summaryGrid">
+        ${globalSummaryHtml}
+        ${focusSummaryHtml}
+      </div>
+
+      <div class="subCard" style="margin-bottom:10px">
+        <h3>${escapeHtml(tableHeaderTitle)}</h3>
+        <div class="hint">${escapeHtml(tableHint)}</div>
+      </div>
+
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Sexe</th>
+              <th>Nom</th>
+              <th>Niveau</th>
+              <th>Stage</th>
+              <th>Stats</th>
+              <th>Confiance</th>
+              <th>Bibliothèque</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+    `;
+
+    els.btnSaveLib.disabled = !allActive.length;
+    els.btnCompareLib.disabled = !allActive.length;
+    els.btnClearLibSpecies.disabled = !hasAnyVisibleSpeciesSelected();
+    els.btnReAnalyze.disabled = !state.file || !allActive.length || state.busy;
+  }
+
+  function renderSelectedSpeciesSummary(sp){
+    const best = sp.bestPair;
+    const bestHtml = best
+      ? (() => {
+          const left = specimenShort(best.m);
+          const right = specimenShort(best.f);
+          const sexNote = best.sexMode === "any" ? `<span class="badge warn">Sexe non fiable / fallback</span>` : "";
+          return `
+            <div class="line"><strong>✅ Meilleur couple (recalcul local)</strong> ${sexNote}</div>
+            <div class="line"><strong>${escapeHtml(left)} × ${escapeHtml(right)}</strong></div>
+            <div class="line">Couverture: <strong>${best.coverage.covered}/${best.coverage.total}</strong></div>
+          `;
+        })()
+      : `<div class="line">Pas assez de dinos pour calculer un couple.</div>`;
+
+    const mirrorsHtml = sp.mirrors.length
+      ? `<div class="line">🪞 Paires miroir : ${sp.mirrors.slice(0,4).map(p => `${specimenShort(p.m)} = ${specimenShort(p.f)}`).map(escapeHtml).join(" • ")}</div>`
+      : `<div class="line muted">🪞 Aucune paire miroir détectée.</div>`;
+
+    const lib = sp.library;
+    const libBlock = lib
+      ? `<div class="line"><strong>📚 Bibliothèque (${lib.entries.length})</strong> • maj ${escapeHtml(formatDate(lib.updatedAt))}</div>
+         <div class="line">Pool biblio : <strong>${escapeHtml(formatPool(sp.libraryPool || {}))}</strong></div>`
+      : `<div class="line muted">📚 Bibliothèque vide pour cette espèce.</div>`;
+
+    return `
+      <div class="subCard">
+        <h3>Récap espèce : ${escapeHtml(sp.label)}</h3>
+        <div class="kv" style="margin-bottom:8px">
+          <span class="chip"><strong>Dinos actifs</strong> ${sp.count}</span>
+          <span class="chip"><strong>Stats max du pool</strong> ${escapeHtml(formatPool(sp.pool))}</span>
+        </div>
+        ${bestHtml}
+        ${mirrorsHtml}
+        ${libBlock}
+      </div>
+    `;
+  }
+
+  function renderSpeciesPanel(sp){
+    const best = sp.bestPair;
+    const bestLine = best
+      ? `Couple: ${escapeHtml(specimenShort(best.m))} × ${escapeHtml(specimenShort(best.f))} • <strong>${best.coverage.covered}/${best.coverage.total}</strong>`
+      : `Couple: <span class="hint">insuffisant</span>`;
+    const libTxt = sp.library?.entries?.length
+      ? `Biblio: ${sp.library.entries.length} • ${escapeHtml(formatPool(sp.libraryPool || {}))}`
+      : `Biblio: vide`;
+    return `
+      <div class="speciesPanel">
+        <h4>${escapeHtml(sp.label)} <span class="badge neutral">${sp.count}</span></h4>
+        <div class="line">Pool: <strong>${escapeHtml(formatPool(sp.pool))}</strong></div>
+        <div class="line">${bestLine}</div>
+        <div class="line muted">${libTxt}</div>
+      </div>
+    `;
+  }
+
+  function specimenShort(s){
+    const sex = s.sex ? s.sex.toUpperCase() : "?";
+    return `${sex}${s.level ?? "?"}`;
+  }
+
+  function renderSpecimenRow(s, displayIndex){
+    const lib = state.library[s.speciesNorm];
+    const libCmp = compareSpecimenToLibrary(s, lib);
+    const conf = Number(s.confidence_pct ?? 0);
+    const confClass = conf >= 90 ? "good" : conf >= 75 ? "mid" : "low";
+    const sexCls = s.sex === "m" ? "m" : s.sex === "f" ? "f" : "u";
+    const stats = STAT_KEYS.map(k => {
+      const v = s.stats?.[k];
+      return `<span class="statTag ${v===null||v===undefined?'missing':''}">${STAT_LABELS[k]}:${v ?? "-"}</span>`;
+    }).join("");
+
+    return `
+      <tr class="${s.excluded ? 'excluded' : ''}" data-specimen-id="${escapeHtml(s._id)}">
+        <td class="num">${displayIndex}</td>
+        <td class="center"><span class="sexPill ${sexCls}">${escapeHtml(s.sex || "?")}</span></td>
+        <td class="nameCell">
+          ${escapeHtml(s.species || "Inconnue")}
+          <span class="nameSub">${escapeHtml(s.note || (s.source === "manuel" ? "corrigé manuellement" : "scan"))}</span>
+        </td>
+        <td>${s.level ?? "-"}</td>
+        <td>${escapeHtml(s.stage || "-")}</td>
+        <td class="statsCell"><div class="statsList">${stats}</div></td>
+        <td class="confCell ${confClass}">${conf ? conf + "%" : "-"}</td>
+        <td>
+          <div class="libStatus">
+            <span class="badge ${libCmp.tone}">${escapeHtml(libCmp.label)}</span>
+            <span class="hint">${escapeHtml(libCmp.coverageText)}</span>
+          </div>
+        </td>
+        <td class="actions actionsCol">
+          <button class="btn xs ghost" data-action="edit" data-id="${escapeHtml(s._id)}">✏️ Modifier</button>
+          <button class="btn xs ${s.excluded?'good':'warn'}" data-action="toggle-exclude" data-id="${escapeHtml(s._id)}">${s.excluded?'↩ Restaurer':'🚫 Exclure'}</button>
+          <button class="btn xs danger" data-action="delete" data-id="${escapeHtml(s._id)}">🗑 Suppr</button>
+          <button class="btn xs primary" data-action="mark-false" data-id="${escapeHtml(s._id)}">❌ Faux + re-scan</button>
+        </td>
+      </tr>
+    `;
+  }
+
+  function onResultClick(e){
+    const btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    const action = btn.dataset.action;
+    const key = btn.dataset.key;
+    const id = btn.dataset.id;
+
+    if(action === "select-species"){
+      state.selectedSpecies = key || "__ALL__";
+      try{ localStorage.setItem(STORAGE_KEYS.selectedSpecies, state.selectedSpecies); }catch(_){}
+      renderAll();
+      return;
+    }
+
+    const idx = state.specimens.findIndex(s => s._id === id);
+    if(idx < 0) return;
+
+    if(action === "edit"){
+      openEditor(idx); return;
+    }
+    if(action === "toggle-exclude"){
+      state.specimens[idx].excluded = !state.specimens[idx].excluded;
+      state.specimens[idx].note = state.specimens[idx].excluded ? (state.specimens[idx].note || "exclu") : state.specimens[idx].note;
+      renderAll();
+      return;
+    }
+    if(action === "delete"){
+      if(!confirm("Supprimer ce dino détecté ?")) return;
+      state.specimens.splice(idx,1);
+      renderAll();
+      return;
+    }
+    if(action === "mark-false"){
+      state.specimens[idx].excluded = true;
+      state.specimens[idx].note = "lecture fausse (exclu)";
+      renderAll();
+      if(state.file && confirm("Lecture fausse marquée. Refaire le scan complet de la vidéo maintenant ?")){
+        analyze(true);
+      }
+      return;
+    }
+  }
+
+  function openEditor(index){
+    state.editorIndex = index;
+    const s = state.specimens[index];
+    els.edSex.value = s.sex || "";
+    els.edSpecies.value = s.species || "";
+    els.edLevel.value = s.level ?? "";
+    els.edStage.value = s.stage || "";
+    els.edHealth.value = s.stats?.health ?? "";
+    els.edStamina.value = s.stats?.stamina ?? "";
+    els.edWeight.value = s.stats?.weight ?? "";
+    els.edOxygen.value = s.stats?.oxygen ?? "";
+    els.edFood.value = s.stats?.food ?? "";
+    els.edMelee.value = s.stats?.melee ?? "";
+    els.edConfidence.value = s.confidence_pct ?? "";
+    els.edSource.value = s.source || "scan";
+    els.edNote.value = s.note || "";
+    els.editorOverlay.classList.add("show");
+    els.editorOverlay.setAttribute("aria-hidden","false");
+  }
+
+  function closeEditor(){
+    state.editorIndex = -1;
+    els.editorOverlay.classList.remove("show");
+    els.editorOverlay.setAttribute("aria-hidden","true");
+  }
+
+  function saveEditor(){
+    const idx = state.editorIndex;
+    if(idx < 0) return;
+    const s = state.specimens[idx];
+    s.sex = normSex(els.edSex.value);
+    s.species = prettySpeciesName(els.edSpecies.value || s.species || "Inconnue");
+    s.speciesNorm = normalizeSpeciesName(s.species);
+    s.level = cleanInt(els.edLevel.value);
+    s.stage = String(els.edStage.value || "-").trim() || "-";
+    s.confidence_pct = cleanPct(els.edConfidence.value);
+    s.stats = {
+      health: cleanInt(els.edHealth.value),
+      stamina: cleanInt(els.edStamina.value),
+      weight: cleanInt(els.edWeight.value),
+      oxygen: cleanInt(els.edOxygen.value),
+      food: cleanInt(els.edFood.value),
+      melee: cleanInt(els.edMelee.value)
+    };
+    s.source = "manuel";
+    s.note = (els.edNote.value || "corrigé manuellement").trim();
+    closeEditor();
+    renderAll();
+  }
+
+  function loadLibrary(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEYS.library);
+      const parsed = raw ? JSON.parse(raw) : {};
+      if(parsed && typeof parsed === "object") return parsed;
+    }catch(_){}
+    return {};
+  }
+
+  function saveLibrary(){
+    try { localStorage.setItem(STORAGE_KEYS.library, JSON.stringify(state.library)); } catch(err){
+      alert("Impossible de sauvegarder la bibliothèque (localStorage plein ?)");
+    }
+  }
+
+  function dedupeLibraryEntries(entries){
+    const map = new Map();
+    for(const e of entries || []){
+      const key = [
+        normSex(e.sex),
+        normalizeSpeciesName(e.species || e.speciesNorm || ""),
+        e.level ?? "",
+        STAT_KEYS.map(k => e.stats?.[k] ?? "-").join("|")
+      ].join("::");
+      if(!map.has(key)) map.set(key, {
+        _id: e._id || cryptoRandomId(),
+        source: e.source || "biblio",
+        note: e.note || "",
+        excluded: false,
+        sex: normSex(e.sex),
+        species: prettySpeciesName(e.species || e.speciesNorm || "Inconnue"),
+        speciesNorm: normalizeSpeciesName(e.species || e.speciesNorm || ""),
+        level: cleanInt(e.level),
+        stage: e.stage || "-",
+        confidence_pct: cleanPct(e.confidence_pct ?? e.confidence),
+        stats: parseStats(e)
+      });
+    }
+    return [...map.values()];
+  }
+
+  function saveScanToLibrary(){
+    const groups = groupBySpecies(activeSpecimens());
+    const keys = Object.keys(groups);
+    if(!keys.length) return;
+    let updated = 0;
+    for(const key of keys){
+      const g = groups[key];
+      const existing = state.library[key]?.entries || [];
+      const merged = dedupeLibraryEntries([...existing, ...g.items.map(x => structuredCloneSafe(x))]);
+      state.library[key] = {
+        species: g.label,
+        speciesNorm: key,
+        updatedAt: new Date().toISOString(),
+        entries: merged
+      };
+      updated++;
+    }
+    saveLibrary();
+    setStatus(`📚 Bibliothèque mise à jour pour ${updated} espèce(s).`, "ok");
+    renderAll();
+  }
+
+  function clearSelectedSpeciesLibrary(){
+    const derived = buildDerived();
+    const keys = state.selectedSpecies === "__ALL__" ? derived.order.slice() : [state.selectedSpecies];
+    const existingKeys = keys.filter(k => state.library[k]);
+    if(!existingKeys.length){
+      alert("Aucune bibliothèque à effacer pour l'espèce/vue sélectionnée.");
+      return;
+    }
+    const label = state.selectedSpecies === "__ALL__" ? `${existingKeys.length} espèces visibles` : (derived.perSpecies[state.selectedSpecies]?.label || "espèce");
+    if(!confirm(`Effacer la bibliothèque pour ${label} ?`)) return;
+    for(const k of existingKeys) delete state.library[k];
+    saveLibrary();
+    setStatus("🗑️ Bibliothèque effacée.", "ok");
+    renderAll();
+  }
+
+  function structuredCloneSafe(v){
+    try { return structuredClone(v); } catch(_) { return JSON.parse(JSON.stringify(v)); }
+  }
+
+  async function analyze(isRetry){
+    if(state.busy) return;
+    if(!state.file){
+      alert("Choisis une vidéo MP4.");
+      return;
+    }
+    const base = getBackendBase();
+    if(!base){
+      alert("URL backend invalide.");
+      return;
+    }
+
+    setBusy(true);
+    setProgress(5);
+    setStatus(isRetry ? "🔁 Re-scan en cours…" : "🚀 Envoi vidéo + analyse…");
+    showWarning("");
+
+    try{
+      const fd = new FormData();
+      fd.append("file", state.file, state.file.name);
+      fd.append("provider", PRESET.provider);
+      fd.append("min_confidence", String(PRESET.minConfidencePct / 100));
+      fd.append("frame_step_sec", String(PRESET.frameStepSec));
+      fd.append("max_frames", String(PRESET.maxFrames));
+
+      setProgress(18);
+      const res = await fetch(base + "/analyze-repro-video", { method:"POST", body: fd });
+      setProgress(72);
+
+      let payload = null;
+      const ct = res.headers.get("content-type") || "";
+      if(ct.includes("application/json")) payload = await res.json();
+      else {
+        const txt = await res.text();
+        try { payload = JSON.parse(txt); } catch(_) { payload = { ok:false, error: txt }; }
+      }
+
+      if(!res.ok || payload?.ok === false){
+        throw new Error(payload?.error || payload?.detail || `Erreur HTTP ${res.status}`);
+      }
+
+      normalizeResponse(payload);
+      setProgress(100);
+      const cnt = activeSpecimens().length;
+      setStatus(`✅ Analyse terminée. ${cnt} dino(s) détecté(s).`, "ok");
+      showWarning(payload?.warning || "");
+      renderAll();
+    }catch(err){
+      console.error(err);
+      setProgress(0);
+      setStatus("❌ " + (err?.message || String(err)), "error");
+    }finally{
+      setBusy(false);
+    }
+  }
+
+  function resetPage(){
+    state.raw = null;
+    state.specimens = [];
+    state.frames = [];
+    state.meta = {};
+    showWarning("");
+    setProgress(0);
+    setStatus("Réinitialisé.");
+    renderAll();
+  }
+
+  function formatDate(iso){
+    if(!iso) return "-";
+    try{
+      const d = new Date(iso);
+      return d.toLocaleString("fr-FR");
+    }catch(_){ return String(iso); }
+  }
+
+})();
+</script>
+</body>
+</html>
